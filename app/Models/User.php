@@ -21,6 +21,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'role',
         'password',
     ];
 
@@ -45,5 +47,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function managedProjects()
+    {
+        return $this->hasMany(Project::class, 'project_manager_id');
+    }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_user')->withTimestamps();
     }
 }
