@@ -133,6 +133,14 @@
                             {{ Str::limit($task->task_details,80) }}
                         </div>
 
+                        <div class="task-desc">
+                            @forelse($task->tags->take(3) as $tag)
+                                <span class="badge mr-1 mb-1" style="background-color: {{ $tag->color }}; color: #fff;">{{ $tag->name }}</span>
+                            @empty
+                                <span class="text-muted">No tags</span>
+                            @endforelse
+                        </div>
+
                         <div class="task-footer">
 
                             <span class="badge-priority">
@@ -143,6 +151,11 @@
                                 #{{ $task->id }}
                             </span>
 
+                        </div>
+
+                        <div class="task-desc" style="margin-top:8px;">
+                            <strong>Assigned by:</strong> {{ optional($task->assignedByUser)->name ?? 'System' }}<br>
+                            <strong>Assigned to:</strong> {{ optional($task->assignedUser)->name ?? 'Unassigned' }}
                         </div>
 
                     </div>
@@ -184,6 +197,14 @@
                             {{ Str::limit($task->task_details,80) }}
                         </div>
 
+                        <div class="task-desc">
+                            @forelse($task->tags->take(3) as $tag)
+                                <span class="badge mr-1 mb-1" style="background-color: {{ $tag->color }}; color: #fff;">{{ $tag->name }}</span>
+                            @empty
+                                <span class="text-muted">No tags</span>
+                            @endforelse
+                        </div>
+
                         <div class="task-footer">
 
                             <span class="badge-priority">
@@ -194,6 +215,11 @@
                                 #{{ $task->id }}
                             </span>
 
+                        </div>
+
+                        <div class="task-desc" style="margin-top:8px;">
+                            <strong>Assigned by:</strong> {{ optional($task->assignedByUser)->name ?? 'System' }}<br>
+                            <strong>Assigned to:</strong> {{ optional($task->assignedUser)->name ?? 'Unassigned' }}
                         </div>
 
                     </div>
@@ -235,6 +261,14 @@
                             {{ Str::limit($task->task_details,80) }}
                         </div>
 
+                        <div class="task-desc">
+                            @forelse($task->tags->take(3) as $tag)
+                                <span class="badge mr-1 mb-1" style="background-color: {{ $tag->color }}; color: #fff;">{{ $tag->name }}</span>
+                            @empty
+                                <span class="text-muted">No tags</span>
+                            @endforelse
+                        </div>
+
                         <div class="task-footer">
 
                             <span class="badge-priority">
@@ -245,6 +279,11 @@
                                 #{{ $task->id }}
                             </span>
 
+                        </div>
+
+                        <div class="task-desc" style="margin-top:8px;">
+                            <strong>Assigned by:</strong> {{ optional($task->assignedByUser)->name ?? 'System' }}<br>
+                            <strong>Assigned to:</strong> {{ optional($task->assignedUser)->name ?? 'Unassigned' }}
                         </div>
 
                     </div>

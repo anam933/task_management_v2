@@ -37,6 +37,26 @@
               placeholder="Project objectives, scope, or business notes">{{ old('project_description', $project->project_description ?? '') }}</textarea>
 </div>
 
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="form-group">
+            <label>Project Category <span class="text-danger">*</span></label>
+
+            <select name="category_id" class="form-control form-control-lg" required>
+    <option value="">Select Project Category</option>
+
+    @foreach($categories as $category)
+        <option value="{{ $category->id }}"
+            {{ old('category_id', $project->category_id ?? '') == $category->id ? 'selected' : '' }}>
+            {{ $category->category_name }}
+        </option>
+    @endforeach
+</select>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-lg-4">
         <div class="form-group">

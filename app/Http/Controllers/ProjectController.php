@@ -7,18 +7,30 @@ use App\Models\ProjectActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Models\ProjectCategory;
 
 class ProjectController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('can:view-projects')->only(['index', 'show']);
+        $this->middleware('can:manage-projects')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    }
+
     public function index(Request $request)
     {
+        $user = Auth::user();
         $filters = $request->only(['search', 'status', 'priority']);
 
         $projectsQuery = Project::with(['manager', 'teamMembers'])
             ->withCount(['tasks', 'tasks as completed_tasks_count' => function ($query) {
                 $query->where('status', 'Completed');
             }])
+            ->visibleTo($user)
             ->latest();
 
         $projectsQuery->when($request->filled('search'), function ($query) use ($request) {
@@ -55,11 +67,12 @@ class ProjectController extends Controller
     }
 
     public function create()
-    {
-        $users = User::orderBy('name')->get();
+{
+    $users = User::employees()->orderBy('name')->get();
+    $categories = ProjectCategory::orderBy('category_name')->get();
 
-        return view('projects.create', compact('users'));
-    }
+    return view('projects.create', compact('users', 'categories'));
+}
 
     public function store(Request $request)
     {
@@ -71,6 +84,7 @@ class ProjectController extends Controller
                 'project_name' => $data['project_name'],
                 'project_code' => $data['project_code'],
                 'project_description' => $data['project_description'] ?? null,
+                 'category_id' => $data['category_id'],
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'] ?? null,
                 'project_manager_id' => $data['project_manager_id'],
@@ -98,6 +112,8 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        Gate::authorize('view-projects', $project);
+
         $project->load([
             'manager',
             'creator',
@@ -106,6 +122,7 @@ class ProjectController extends Controller
                 $query->latest();
             },
             'tasks.assignedUser',
+            'tasks.assignedByUser',
             'tasks.category',
             'activityLogs' => function ($query) {
                 $query->latest();
@@ -122,14 +139,24 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        $users = User::orderBy('name')->get();
-        $project->load('teamMembers');
+        abort_unless(
+            Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
+            403
+        );
+        $users = User::employees()->orderBy('name')->get();
+$categories = ProjectCategory::orderBy('category_name')->get();
 
-        return view('projects.edit', compact('project', 'users'));
+$project->load('teamMembers');
+
+return view('projects.edit', compact('project', 'users', 'categories'));
     }
 
     public function update(Request $request, Project $project)
     {
+        abort_unless(
+            Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
+            403
+        );
         $data = $this->validateProject($request, $project->id);
         $originalStatus = $project->project_status;
 
@@ -138,6 +165,8 @@ class ProjectController extends Controller
                 'project_name' => $data['project_name'],
                 'project_code' => $data['project_code'],
                 'project_description' => $data['project_description'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'] ?? null,
                 'project_manager_id' => $data['project_manager_id'],
@@ -174,6 +203,10 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        abort_unless(
+            Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
+            403
+        );
         DB::transaction(function () use ($project) {
             $this->logActivity(
                 project: $project,
@@ -197,33 +230,34 @@ class ProjectController extends Controller
             ->with('success', 'Project deleted successfully.');
     }
 
-    private function validateProject(Request $request, ?int $projectId = null): array
-    {
-        return $request->validate([
-            'project_name' => 'required|string|max:255',
-            'project_code' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('projects', 'project_code')->ignore($projectId),
-            ],
-            'project_description' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'project_manager_id' => 'required|exists:users,id',
-            'project_status' => 'required|in:Planning,Active,On Hold,Completed,Cancelled',
-            'priority' => 'required|in:Low,Medium,High',
-            'budget' => 'nullable|numeric|min:0',
-            'team_members' => 'nullable|array',
-            'team_members.*' => 'integer|exists:users,id',
-        ]);
-    }
+    private function validateProject(Request $request)
+{
+    return $request->validate([
+        'project_name' => 'required|string|max:255',
+        'project_code' => 'required|string|unique:projects,project_code',
+        'project_description' => 'nullable|string',
+
+        'category_id' => 'required|exists:categories,id', // 🔥 FIX
+
+        'start_date' => 'required|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+
+        'project_manager_id' => 'required|exists:users,id',
+
+        'project_status' => 'required|string',
+        'priority' => 'required|string',
+
+        'budget' => 'nullable|numeric',
+
+        'team_members' => 'nullable|array',
+    ]);
+}
 
     private function logActivity(Project $project, string $event, string $title, string $description, array $metadata = []): void
     {
         ProjectActivityLog::create([
             'project_id' => $project->id,
-            'user_id' => auth()->id() ?? 1,
+            'user_id' => Auth::id(),
             'event' => $event,
             'title' => $title,
             'description' => $description,

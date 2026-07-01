@@ -1,15 +1,14 @@
 @extends('adminlte::page')
 
-@section('title', 'Add User')
+@section('title', auth()->user()->hasRole('manager') ? 'Add Employee' : 'Add User')
 
 @section('content')
 
 <div class="card">
     <div class="card-header">
-        <h3>Add User</h3>
+        <h3>{{ auth()->user()->hasRole('manager') ? 'Add Employee' : 'Add User' }}</h3>
     </div>
 
-```
 <div class="card-body">
 
     <form action="{{ route('users.store') }}" method="POST">
@@ -40,11 +39,17 @@
 
         <div class="mb-3">
             <label>Role</label>
-            <select name="role" class="form-control">
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Employee">Employee</option>
-            </select>
+            @if(auth()->user()->hasRole('manager'))
+                <input type="hidden" name="role" value="employee">
+                <div class="form-control bg-light">Employee</div>
+                <small class="text-muted">Managers can create employees only.</small>
+            @else
+                <select name="role" class="form-control">
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="employee">Employee</option>
+                </select>
+            @endif
         </div>
 
         <div class="mb-3">
@@ -67,7 +72,6 @@
     </form>
 
 </div>
-```
 
 </div>
 

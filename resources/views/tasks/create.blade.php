@@ -78,6 +78,20 @@
 
                 <div class="col-lg-4">
                     <div class="form-group">
+                        <label>Tags</label>
+                        <select name="tag_ids[]" class="form-control form-control-lg" multiple size="5">
+                            @foreach($tags as $tag)
+                                <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tag_ids', $selectedTagIds ?? [])) ? 'selected' : '' }}>
+                                    {{ $tag->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Hold Ctrl or Cmd to pick multiple tags.</small>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="form-group">
                         <label>Project <span class="text-danger">*</span></label>
                         <select name="project_id" class="form-control form-control-lg" required>
                             <option value="">Select Project</option>

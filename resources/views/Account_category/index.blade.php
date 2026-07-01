@@ -8,10 +8,11 @@
 
     <div class="d-flex justify-content-between mb-3">
         <h3>Account Category</h3>
-
+        @can('manage-account-categories')
         <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">
             + Add Category
         </button>
+        @endcan
     </div>
 
     {{-- SEARCH --}}
@@ -52,6 +53,7 @@
 
                 <div class="card-footer d-flex justify-content-between">
 
+                    @can('manage-account-categories')
                     <button class="btn btn-warning btn-sm"
                         data-toggle="modal"
                         data-target="#editModal{{ $cat->id }}">
@@ -62,6 +64,7 @@
                         data-id="{{ $cat->id }}">
                         Delete
                     </button>
+                    @endcan
 
                 </div>
 
@@ -70,6 +73,7 @@
         </div>
 
         {{-- EDIT MODAL --}}
+        @can('manage-account-categories')
         <div class="modal fade" id="editModal{{ $cat->id }}">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -115,6 +119,7 @@
                 </div>
             </div>
         </div>
+        @endcan
 
         @endforeach
 
@@ -123,6 +128,7 @@
 </div>
 
 {{-- ADD MODAL --}}
+@can('manage-account-categories')
 <div class="modal fade" id="addModal">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -170,6 +176,7 @@
         </div>
     </div>
 </div>
+@endcan
 
 @endsection
 

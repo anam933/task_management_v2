@@ -9,9 +9,11 @@
             <p class="text-muted mb-0">{{ $project->project_code }}</p>
         </div>
         <div>
+            @can('manage-projects')
             <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-warning mr-2">
                 <i class="fas fa-pen mr-1"></i> Edit
             </a>
+            @endcan
             <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">Back</a>
         </div>
     </div>
@@ -111,6 +113,7 @@
                                 <tr>
                                     <th>Task</th>
                                     <th>Category</th>
+                                    <th>Assigned By</th>
                                     <th>Status</th>
                                     <th>Assignee</th>
                                 </tr>
@@ -120,12 +123,13 @@
                                     <tr>
                                         <td>{{ $task->task_name }}</td>
                                         <td>{{ optional($task->category)->category_name ?? 'N/A' }}</td>
+                                        <td>{{ optional($task->assignedByUser)->name ?? 'System' }}</td>
                                         <td>{{ $task->status }}</td>
                                         <td>{{ optional($task->assignedUser)->name ?? 'Unassigned' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-4">No tasks assigned to this project.</td>
+                                        <td colspan="5" class="text-center py-4">No tasks assigned to this project.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

@@ -8,9 +8,11 @@
             <h1 class="mb-1">Project Management</h1>
             <p class="text-muted mb-0">Monitor delivery, budgets, owners, and progress across all projects.</p>
         </div>
+        @can('manage-projects')
         <a href="{{ route('projects.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i> New Project
         </a>
+        @endcan
     </div>
 @stop
 
@@ -135,7 +137,9 @@
                             <th>Budget</th>
                             <th>Timeline</th>
                             <th>Progress</th>
-                            <th style="width: 170px;">Actions</th>
+                            @can('view-projects')
+                                <th style="width: 170px;">Actions</th>
+                            @endcan
                         </tr>
                     </thead>
                     <tbody>
@@ -182,22 +186,26 @@
                                         <div class="progress-bar bg-primary" style="width: {{ $progress }}%"></div>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('projects.show', $project->id) }}" class="btn btn-info">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-warning">
-                                            <i class="fas fa-pen"></i>
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-danger js-delete-project"
-                                                data-id="{{ $project->id }}"
-                                                data-url="{{ route('projects.destroy', $project->id) }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
+                                @can('view-projects')
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('projects.show', $project->id) }}" class="btn btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @can('manage-projects')
+                                            <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-warning">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-danger js-delete-project"
+                                                    data-id="{{ $project->id }}"
+                                                    data-url="{{ route('projects.destroy', $project->id) }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                @endcan
                             </tr>
                         @empty
                             <tr>

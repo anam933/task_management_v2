@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 class Project extends Model
 {
@@ -13,6 +14,7 @@ class Project extends Model
         'project_name',
         'project_code',
         'project_description',
+        'category_id',          // ✅ Added
         'start_date',
         'end_date',
         'project_manager_id',
@@ -28,6 +30,12 @@ class Project extends Model
         'budget' => 'decimal:2',
         'deleted_at' => 'datetime',
     ];
+
+    // ✅ NEW RELATION
+    public function category()
+    {
+        return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
 
     public function tasks()
     {
@@ -52,5 +60,20 @@ class Project extends Model
     public function activityLogs()
     {
         return $this->hasMany(ProjectActivityLog::class);
+    }
+
+    public function scopeVisibleTo($query, User $user)
+    {
+        if ($user->hasRole(['admin', 'manager'])) {
+            return $query;
+        }
+
+        return $query->where(function ($builder) use ($user) {
+            $builder->where('project_manager_id', $user->id)
+                ->orWhere('created_by', $user->id)
+                ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
+                    $teamQuery->whereKey($user->id);
+                });
+        });
     }
 }

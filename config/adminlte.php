@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => '<b>TASK MANAGEMENT</b> SYSTEM',
-    'logo_img' => 'vendor/adminlte/dist/img/logo.png',
+    'logo' => '<b>Task</b>Flow',
+    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'TaskFlow Logo',
 
     /*
     |--------------------------------------------------------------------------
@@ -190,17 +190,17 @@ return [
     |
     */
 
-    'classes_body' => '',
-    'classes_brand' => '',
-    'classes_brand_text' => '',
-    'classes_content_wrapper' => '',
-    'classes_content_header' => '',
-    'classes_content' => '',
-    'classes_sidebar' => 'sidebar-dark-primary elevation-4',
-    'classes_sidebar_nav' => '',
-    'classes_topnav' => 'navbar-white navbar-light',
+    'classes_body' => 'font-sans text-base bg-light',
+    'classes_brand' => 'bg-white text-dark font-weight-bold border-bottom shadow-sm',
+    'classes_brand_text' => 'font-weight-bold text-dark',
+    'classes_content_wrapper' => 'bg-light',
+    'classes_content_header' => 'pb-3 pt-4',
+    'classes_content' => 'pt-3',
+    'classes_sidebar' => 'sidebar-light elevation-0 border-right',
+    'classes_sidebar_nav' => 'nav-pills nav-sidebar flex-column nav-child-indent nav-compact',
+    'classes_topnav' => 'navbar-white navbar-light border-bottom shadow-sm',
     'classes_topnav_nav' => 'navbar-expand',
-    'classes_topnav_container' => 'container',
+    'classes_topnav_container' => 'container-fluid',
 
     /*
     |--------------------------------------------------------------------------
@@ -257,7 +257,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => '/',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -283,8 +283,8 @@ return [
     */
 
     'laravel_asset_bundling' => false,
-    'laravel_css_path' => 'css/app.css',
-    'laravel_js_path' => 'js/app.js',
+    'laravel_css_path' => 'resources/css/app.css',
+    'laravel_js_path' => 'resources/js/app.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -315,17 +315,12 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
-        [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
-        ],
-        
         ['header' => 'account_settings'],
         [
             'text' => 'Profile',
             'url' => 'admin/setting',
             'icon' => 'fas fa-fw fa-user',
+            'can' => 'view-profile',
         ],
         
         [
@@ -333,32 +328,55 @@ return [
             'url'  => 'logout',
             'icon' => 'fas fa-fw fa-sign-out-alt',
         ],
-        ['header' => 'System_Management'],
+        
         [
         'text' => 'Dashboard',
         'url'  => '/',
         'icon' => 'fas fa-fw fa-tachometer-alt',
+        'can' => 'view-dashboard',
         ],
 
         [
             'text' => 'User_Management',
             'url'  => 'users',
             'icon' => 'fas fa-users',
+            'can' => 'manage-employees',
+        ],
+        [
+            'text' => 'Add Employee',
+            'url'  => 'users/create',
+            'icon' => 'fas fa-user-plus',
+            'can' => 'manage-employees',
         ],
         [
             'text' => 'Task_Management',
             'url'  => 'tasks',
             'icon' => 'fas fa-tasks',
+            'can' => 'view-tasks',
+        ],
+        [
+            'text' => 'Tag_Management',
+            'url'  => 'tags',
+            'icon' => 'fas fa-tags',
+            'can' => 'manage-tags',
+        ],
+        [
+            'text' => 'Project_Category',
+            'url'  => 'Project_category',
+            'icon' => 'fas fa-folder',
+            'can' => 'manage-project-categories',
         ],
         [
             'text' => 'Project_Management',
             'url'  => 'projects',
             'icon' => 'fas fa-briefcase',
+            'can' => 'view-projects',
         ],
         [
             'text' => 'Task_board',
             'url'  => 'task-board',
             'icon' => 'fas fa-tasks',
+            'can' => 'view-task-board',
         ],
         
         
@@ -366,10 +384,20 @@ return [
             'text'=>'Task_category',
             'url'=>'Task_category',
             'icon'=>'fas fa-tags',
-        ]
-           
-                
-        
+            'can' => 'manage-task-categories',
+        ],
+        [
+            'text' => 'Daily_Standup_Reports',
+            'url' => 'standup-reports',
+            'icon' => 'fas fa-clipboard-list',
+            'can' => 'view-standup-reports',
+        ],
+        [
+            'text' => 'Meeting_Minutes',
+            'url' => 'meeting-minutes',
+            'icon' => 'fas fa-notes-medical',
+            'can' => 'view-meeting-minutes',
+        ],
     ],
 
     /*

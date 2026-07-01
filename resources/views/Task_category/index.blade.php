@@ -8,7 +8,9 @@
 
     <div class="d-flex justify-content-between mb-3">
         <h3>Task Category</h3>
+        @can('manage-task-categories')
         <a href="{{ route('Task_category.create') }}" class="btn btn-primary">+ Add Category</a>
+        @endcan
     </div>
 
     @if (session('success'))
@@ -33,7 +35,9 @@
                         <th>ID</th>
                         <th>Name</th>
                         <th>Description</th>
-                        <th>Action</th>
+                        @can('manage-task-categories')
+                            <th>Action</th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody>
@@ -42,14 +46,16 @@
                             <td>{{ $category->id }}</td>
                             <td>{{ $category->category_name }}</td>
                             <td>{{ $category->description }}</td>
-                            <td>
-                                <a href="{{ route('Task_category.edit', $category->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{{ route('Task_category.destroy', $category->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Delete this category?')">Delete</button>
-                                </form>
-                            </td>
+                            @can('manage-task-categories')
+                                <td>
+                                    <a href="{{ route('Task_category.edit', $category->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <form action="{{ route('Task_category.destroy', $category->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm" onclick="return confirm('Delete this category?')">Delete</button>
+                                    </form>
+                                </td>
+                            @endcan
                         </tr>
                     @empty
                         <tr>

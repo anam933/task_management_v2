@@ -2,9 +2,11 @@
 
 @section('content')
 
+@can('manage-employees')
 <a href="{{ route('users.create') }}" class="btn btn-primary mb-3">
-    Add User
+    {{ auth()->user()->hasRole('manager') ? 'Add Employee' : 'Add User' }}
 </a>
+@endcan
 
 <table class="table table-bordered">
     <tr>
@@ -12,6 +14,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Role</th>
+        <th>Created By</th>
         <th>Action</th>
     </tr>
 
@@ -20,9 +23,11 @@
         <td>{{ $user->id }}</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
-        <td>{{ $user->role }}</td>
+        <td>{{ ucfirst($user->role) }}</td>
+        <td>{{ optional($user->creator)->name ?? 'System' }}</td>
 
         <td>
+            @can('manage-employees')
             <a href="{{ route('users.edit',$user->id) }}"
                class="btn btn-warning btn-sm">Edit</a>
 
@@ -36,6 +41,7 @@
                     Delete
                 </button>
             </form>
+            @endcan
         </td>
     </tr>
     @endforeach

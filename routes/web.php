@@ -6,16 +6,23 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\AccountCategoryController;
 use App\Http\Controllers\TaskCategoryController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\DailyStandupReportController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectCategoryController;
+use App\Http\Controllers\MeetingMinuteController;
 
 Route::get('/', [DashboardController::class, 'index']);
 Route::resource('users', UserController::class);
 
 Route::resource('tasks', TaskController::class);
 Route::resource('projects', ProjectController::class);
+Route::resource('tags', TagController::class);
+Route::resource('standup-reports', DailyStandupReportController::class);
+Route::resource('meeting-minutes', MeetingMinuteController::class);
 
 
 
@@ -55,7 +62,12 @@ Route::resource(
     'Task_category',
     TaskCategoryController::class
 );
-   
+Route::resource('Task_category', TaskCategoryController::class)
+    ->middleware('can:manage-task-categories');
+
+
+Route::resource('Project_category', ProjectCategoryController::class)
+    ->middleware('can:manage-project-categories');   
 
 
 

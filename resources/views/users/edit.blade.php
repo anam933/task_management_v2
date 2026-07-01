@@ -9,7 +9,6 @@
         <h3>Edit User</h3>
     </div>
 
-```
 <div class="card-body">
 
     <form action="{{ route('users.update',$user->id) }}"
@@ -44,11 +43,17 @@
 
         <div class="mb-3">
             <label>Role</label>
-            <select name="role" class="form-control">
-                <option value="Admin" {{ $user->role=='Admin' ? 'selected' : '' }}>Admin</option>
-                <option value="Manager" {{ $user->role=='Manager' ? 'selected' : '' }}>Manager</option>
-                <option value="Employee" {{ $user->role=='Employee' ? 'selected' : '' }}>Employee</option>
-            </select>
+            @if(auth()->user()->hasRole('manager'))
+                <input type="hidden" name="role" value="employee">
+                <div class="form-control bg-light">Employee</div>
+                <small class="text-muted">Managers can edit employees only.</small>
+            @else
+                <select name="role" class="form-control">
+                    <option value="admin" {{ $user->role=='admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="manager" {{ $user->role=='manager' ? 'selected' : '' }}>Manager</option>
+                    <option value="employee" {{ $user->role=='employee' ? 'selected' : '' }}>Employee</option>
+                </select>
+            @endif
         </div>
 
         <button type="submit" class="btn btn-primary">
@@ -63,7 +68,6 @@
     </form>
 
 </div>
-```
 
 </div>
 

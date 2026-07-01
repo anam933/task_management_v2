@@ -8,6 +8,12 @@ use App\Models\AccountCategory;
 
 class AccountCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('can:manage-account-categories');
+    }
+
     public function index()
     {
         $category = AccountCategory::latest()->get();
@@ -50,6 +56,11 @@ class AccountCategoryController extends Controller
             'Account_category.edit',
             compact('Account_category')
         );
+    }
+
+    public function show(AccountCategory $Account_category)
+    {
+        return redirect()->route('Account_category.index');
     }
 
     public function update(

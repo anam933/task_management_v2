@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class TaskCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('can:manage-task-categories');
+    }
+
     public function index()
     {
         $categories = TaskCategory::latest()->get();
@@ -39,6 +45,11 @@ class TaskCategoryController extends Controller
     public function edit(TaskCategory $Task_category)
     {
         return view('Task_category.edit', compact('Task_category'));
+    }
+
+    public function show(TaskCategory $Task_category)
+    {
+        return redirect()->route('Task_category.index');
     }
 
     public function update(Request $request, TaskCategory $Task_category)

@@ -50,7 +50,7 @@
                 </h3>
 
                 <p class="text-muted text-center">
-                    {{ ucfirst($user->role ?? 'User') }}
+                    {{ $user->role_label ?? 'User' }}
                 </p>
 
                 <ul class="list-group list-group-unbordered mb-3">
@@ -119,7 +119,7 @@
 
                     <tr>
                         <th>Role</th>
-                        <td>{{ ucfirst($user->role ?? 'User') }}</td>
+                        <td>{{ $user->role_label ?? 'User' }}</td>
                     </tr>
 
                     <tr>

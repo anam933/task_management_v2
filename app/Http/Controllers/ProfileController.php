@@ -9,6 +9,12 @@ use App\Models\Task;
 
 class ProfileController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('can:view-profile');
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -16,15 +22,15 @@ class ProfileController extends Controller
         $totalTasks = Task::where('assigned_to', $user->id)->count();
 
         $pendingTasks = Task::where('assigned_to', $user->id)
-            ->where('status', 'pending')
+            ->where('status', 'Pending')
             ->count();
 
         $progressTasks = Task::where('assigned_to', $user->id)
-            ->where('status', 'progress')
+            ->where('status', 'In Progress')
             ->count();
 
         $completedTasks = Task::where('assigned_to', $user->id)
-            ->where('status', 'completed')
+            ->where('status', 'Completed')
             ->count();
 
         return view('Profile.index', compact(
@@ -60,5 +66,19 @@ class ProfileController extends Controller
         $user->save();
 
         return back()->with('success', 'Profile updated successfully');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return back()->with('success', 'Password updated successfully');
     }
 }

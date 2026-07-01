@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../../vendor/adminlte/dist/css/adminlte.min.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -9,3 +10,389 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+:root {
+    color-scheme: light;
+    font-family: var(--font-sans);
+    color: #0f172a;
+    background-color: #f7f8fb;
+}
+
+body {
+    background-color: #f7f8fb;
+    background-image:
+        linear-gradient(180deg, #ffffff 0%, #f1f3f6 55%, #f7f8fb 100%);
+    min-height: 100vh;
+    font-family: var(--font-sans);
+}
+
+html, body {
+    overflow-x: hidden;
+}
+
+.brand-link {
+    background: #ffffff;
+    color: #0d6efd !important;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: none;
+    border-radius: 0;
+    font-weight: 700;
+}
+
+.brand-text {
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    color: #0d6efd;
+}
+
+.main-header {
+    background: #ffffff;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.main-sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e9ecef;
+}
+
+.main-sidebar .nav-sidebar .nav-link {
+    border-radius: 0.85rem;
+    margin: 0.3rem 0;
+    color: #495057;
+    background: transparent;
+    padding: 0.85rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.main-sidebar .nav-sidebar .nav-link.active {
+    background: #e7f1ff;
+    color: #0d6efd;
+    border-left: 4px solid #0d6efd;
+    box-shadow: none;
+}
+
+.main-sidebar .nav-sidebar .nav-link:hover {
+    background: #f4f7fb;
+    color: #0d6efd;
+}
+
+.sidebar-light .nav-sidebar>.nav-item>.nav-link.active, .sidebar-light .nav-sidebar>.nav-item>.nav-link.active:hover {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+
+.content-wrapper {
+    background: #f7f8fb;
+}
+
+.content-header .container-fluid, .content {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.card {
+    border-radius: 1rem;
+    border: 1px solid #e7eaf1;
+    box-shadow: 0 10px 24px rgba(18, 45, 79, 0.05);
+    background: #ffffff;
+}
+
+.card.card-outline.card-primary, .card.card-outline.card-info, .card.card-outline.card-success, .card.card-outline.card-warning, .card.card-outline.card-danger {
+    border-color: rgba(13, 110, 253, 0.18);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.25rem;
+}
+
+.card-title {
+    font-weight: 700;
+    color: #212529;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.16);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: #0b5ed7;
+    border-color: #0b5ed7;
+}
+
+.btn-outline-secondary {
+    color: #495057;
+    background-color: #ffffff;
+    border-color: #ced4da;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+}
+
+.form-control, .custom-select, .select2-selection, input[type="text"], input[type="email"], input[type="password"], textarea {
+    border-radius: 0.75rem;
+    border: 1px solid #dfe3ea;
+    box-shadow: none;
+}
+
+.form-control:focus, .custom-select:focus, .select2-selection:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.table {
+    border-radius: 0.85rem;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    color: #495057;
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: #f1f3f5;
+}
+
+.small-box {
+    border-radius: 1rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 10px 24px rgba(18, 45, 79, 0.05);
+    background: #ffffff;
+}
+
+.small-box .inner h3 {
+    font-size: 2.3rem;
+    color: #212529;
+}
+
+.small-box .icon {
+    right: 1.2rem;
+    top: 1.2rem;
+    font-size: 3rem;
+    opacity: 0.15;
+}
+
+.bg-info, .bg-success, .bg-warning, .bg-danger, .bg-primary {
+    border-radius: 1rem !important;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #38d9a9 100%) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #198754 0%, #51cf66 100%) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffd43b 100%) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+}
+
+.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #3b82f6 100%) !important;
+}
+
+.login-page, .register-page {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.login-box, .register-box {
+    margin-top: 4rem;
+}
+
+.login-card-body, .register-card-body {
+    border-radius: 1.25rem;
+    box-shadow: 0 18px 34px rgba(18, 45, 79, 0.09);
+    border: 1px solid #e9ecef;
+}
+
+.login-card-body .form-control,
+.register-card-body .form-control {
+    border-radius: 0.75rem;
+}
+
+.login-logo a, .register-logo a {
+    color: #0d6efd;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.alert {
+    border-radius: 0.9rem;
+}
+
+.content-header .container-fluid, .content {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.content-header h1, .content-header .text-muted {
+    color: #0f172a;
+}
+
+.card {
+    border-radius: 1.4rem;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 24px 40px rgba(15, 23, 42, 0.06);
+}
+
+.card.card-outline.card-primary, .card.card-outline.card-info, .card.card-outline.card-success, .card.card-outline.card-warning, .card.card-outline.card-danger {
+    border-color: rgba(99, 102, 241, 0.18);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding: 1.1rem 1.4rem;
+}
+
+.card-title {
+    font-weight: 800;
+    color: #111827;
+}
+
+.card-body {
+    padding: 1.6rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #22c55e 100%);
+    border: none;
+    box-shadow: 0 12px 26px rgba(79, 70, 229, 0.18);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: linear-gradient(135deg, #4338ca 0%, #16a34a 100%);
+}
+
+.btn-outline-secondary {
+    color: #334155;
+    background-color: rgba(241, 245, 249, 0.95);
+    border-color: rgba(148, 163, 184, 0.26);
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(241, 245, 249, 1);
+}
+
+.form-control, .custom-select, .select2-selection, input[type="text"], input[type="email"], input[type="password"], textarea {
+    border-radius: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    box-shadow: none;
+}
+
+.form-control:focus, .custom-select:focus, .select2-selection:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.16);
+}
+
+.table {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: #f8fafc;
+    color: #334155;
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.06);
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.badge {
+    border-radius: 0.85rem;
+    font-weight: 700;
+}
+
+.small-box {
+    border-radius: 1.35rem;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+}
+
+.small-box .inner h3 {
+    font-size: 2.5rem;
+}
+
+.small-box .icon {
+    right: 1.2rem;
+    top: 1.2rem;
+    font-size: 3rem;
+    opacity: 0.18;
+}
+
+.bg-info, .bg-success, .bg-warning, .bg-danger, .bg-primary {
+    border-radius: 1.35rem !important;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #facc15 100%) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #fb7185 100%) !important;
+}
+
+.bg-primary {
+    background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%) !important;
+}
+
+.login-page, .register-page {
+    background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+}
+
+.login-box, .register-box {
+    margin-top: 4rem;
+}
+
+.login-card-body, .register-card-body {
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.login-card-body .form-control,
+.register-card-body .form-control {
+    border-radius: 1rem;
+}
+
+.login-logo a, .register-logo a {
+    color: #3730a3;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.alert {
+    border-radius: 1rem;
+}
+

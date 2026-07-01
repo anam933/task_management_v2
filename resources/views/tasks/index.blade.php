@@ -8,9 +8,11 @@
             <h1 class="mb-1">Task Management</h1>
             <p class="text-muted mb-0">Track task category, priority, assignment, and progress in one place.</p>
         </div>
+        @can('manage-tasks')
         <a href="{{ route('tasks.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i> Add New Task
         </a>
+        @endcan
     </div>
 @stop
 
@@ -105,13 +107,17 @@
                         <th>Task</th>
                         <th>Project</th>
                         <th>Category</th>
+                        <th>Tags</th>
                         <th>Priority</th>
                         <th>Status</th>
+                        <th>Assigned By</th>
                         <th>Assigned To</th>
                         <th>Timeline</th>
-                        <th style="width: 150px;">Actions</th>
+                        @can('view-tasks')
+                            <th style="width: 150px;">Actions</th>
+                        @endcan
                     </tr>
-                </thead>
+                    </thead>
 
                 <tbody>
                     @forelse($tasks as $task)
@@ -134,6 +140,21 @@
                                     $categoryName = optional($task->category)->category_name ?? optional($task->legacyCategory)->category_name ?? 'N/A';
                                 @endphp
                                 <span class="badge badge-primary px-3 py-2">{{ $categoryName }}</span>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap" style="gap: 0.35rem;">
+                                    @forelse($task->tags->take(3) as $tag)
+                                        <span class="badge px-3 py-2" style="background-color: {{ $tag->color }}; color: #fff;">
+                                            {{ $tag->name }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">No tags</span>
+                                    @endforelse
+                                    @if($task->tags->count() > 3)
+                                        <span class="badge badge-light border px-3 py-2">+{{ $task->tags->count() - 3 }}</span>
+                                    @endif
+                                </div>
                             </td>
 
                             <td>
@@ -163,29 +184,41 @@
                             </td>
 
                             <td>
+                                <div>{{ optional($task->assignedByUser)->name ?? 'System' }}</div>
+                            </td>
+
+                            <td>
                                 <div><strong>Start:</strong> {{ \Carbon\Carbon::parse($task->start_date)->format('d M Y') }}</div>
                                 <div><strong>Due:</strong> {{ \Carbon\Carbon::parse($task->deadline_date)->format('d M Y') }}</div>
                             </td>
 
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-warning">
-                                        <i class="fas fa-pen"></i>
-                                    </a>
+                            @can('view-tasks')
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('tasks.show', $task->id) }}" class="btn btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
 
-                                    <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Delete this task?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                                        @can('manage-tasks')
+                                        <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-warning">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+
+                                        <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Delete this task?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </div>
+                                </td>
+                            @endcan
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4">
+                            <td colspan="11" class="text-center py-4">
                                 No Tasks Found
                             </td>
                         </tr>
