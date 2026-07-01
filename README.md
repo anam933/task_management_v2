@@ -57,3 +57,260 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+# 🚀 Task Management System
+
+A modern **Task Management System** built with **Laravel 12** to streamline project planning, task assignment, team collaboration, and progress tracking.
+
+This application provides role-based access, project management, Kanban workflow, meeting minutes, activity logging, and daily stand-up reporting in a centralized dashboard.
+
+---
+
+# 📌 Features
+
+### 👤 Authentication & User Management
+- Secure Login & Logout
+- Profile Management
+- User CRUD
+- Role-Based Access Control (RBAC)
+- Permission Management
+
+### 📁 Project Management
+- Create, Update & Delete Projects
+- Project Categories
+- Project Manager Assignment
+- Team Member Assignment
+- Project Status Tracking
+- Project Priority
+- Budget Management
+
+### ✅ Task Management
+- Create & Assign Tasks
+- Task Categories
+- Task Priorities
+- Due Dates
+- Task Status Tracking
+- Task Filtering & Search
+
+### 📋 Kanban Board
+- Drag-and-drop style workflow
+- Pending Tasks
+- In Progress Tasks
+- Completed Tasks
+
+### 📝 Meeting Minutes (MOM)
+- Create Meeting Minutes
+- Store Decisions
+- Store Action Items
+- Track Attendees
+- Link Meetings with Projects
+
+### 📅 Daily Stand-up Reports
+- Daily Progress Updates
+- Yesterday's Work
+- Today's Plan
+- Blockers Tracking
+
+### 📊 Dashboard
+- Total Projects
+- Total Tasks
+- Active Projects
+- Completed Projects
+- Statistics Cards
+
+### 📜 Activity Log
+- Project Activity Tracking
+- User Actions
+- Status Changes
+- History Management
+
+---
+
+# 🛠 Tech Stack
+
+| Technology | Version |
+|------------|----------|
+| Laravel | 12 |
+| PHP | 8.2 |
+| MySQL | Database |
+| Bootstrap | UI Framework |
+| AdminLTE | Admin Dashboard |
+| HTML5 | Frontend |
+| CSS3 | Styling |
+| JavaScript | Client-side |
+| Blade | Laravel Templating |
+
+---
+
+# 📂 Project Modules
+
+- Authentication
+- Dashboard
+- Users
+- Projects
+- Project Categories
+- Tasks
+- Task Categories
+- Kanban Board
+- Meeting Minutes
+- Daily Stand-up Reports
+- Activity Logs
+- Profile Management
+
+---
+
+# 🗄 Database Relationships
+
+- One User → Many Projects
+- One Project → Many Tasks
+- One Project → Many Meeting Minutes
+- One Category → Many Projects
+- One Task Category → Many Tasks
+- Many Users ↔ Many Projects (Team Members)
+
+---
+
+# 🔄 Application Flow
+
+```
+Login
+      │
+      ▼
+Dashboard
+      │
+      ▼
+Create Project
+      │
+      ▼
+Assign Team Members
+      │
+      ▼
+Create Tasks
+      │
+      ▼
+Assign Tasks
+      │
+      ▼
+Update Task Status
+      │
+      ▼
+Kanban Board
+      │
+      ▼
+Meeting Minutes
+      │
+      ▼
+Daily Stand-up Reports
+      │
+      ▼
+Activity Logs
+```
+
+---
+
+# 🚀 Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/anam933/task_management_v2.git
+```
+
+## Go to Project
+
+```bash
+cd task_management_v2
+```
+
+## Install Dependencies
+
+```bash
+composer install
+```
+
+## Create Environment File
+
+```bash
+cp .env.example .env
+```
+
+## Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+## Configure Database
+
+Update your **.env** file:
+
+```env
+DB_DATABASE=task_management
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+## Run Migrations
+
+```bash
+php artisan migrate
+```
+
+## Start Development Server
+
+```bash
+php artisan serve
+```
+
+Application will run at:
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+# 📸 Screenshots
+
+> Add screenshots here after deployment.
+
+- Login Page
+- Dashboard
+- Projects
+- Tasks
+- Kanban Board
+- Meeting Minutes
+- User Management
+
+---
+
+# 📈 Future Improvements
+
+- Email Notifications
+- File Attachments
+- Calendar Integration
+- Gantt Chart
+- Time Tracking
+- Project Reports
+- Chat Module
+- Mobile Responsive UI
+- API Integration
+
+---
+
+# 👩‍💻 Developed By
+
+**Anam Mariya**
+
+Laravel Developer | Full Stack Learner
+
+GitHub:
+https://github.com/anam933
+
+---
+
+# ⭐ If you like this project
+
+Please give this repository a ⭐ on GitHub.
