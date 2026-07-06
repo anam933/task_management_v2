@@ -21,10 +21,11 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $selectedCategory = $this->currentCategoryId();
 
-        $selectedCategory = $request->category_id;
-
-        $categories = ProjectCategory::orderBy('category_name')->get();
+        $categories = $user->hasRole('admin')
+            ? ProjectCategory::orderBy('category_name')->get()
+            : ProjectCategory::whereKey($user->category_id)->get();
 
         $showSystemStats = $user->hasRole(['admin', 'manager']);
 
@@ -48,14 +49,7 @@ class DashboardController extends Controller
             $userQuery = User::query();
 
             if ($selectedCategory) {
-                $userQuery->where(function ($query) use ($selectedCategory) {
-                    $query->whereHas('managedProjects', function ($q) use ($selectedCategory) {
-                        $q->where('category_id', $selectedCategory);
-                    })
-                    ->orWhereHas('projects', function ($q) use ($selectedCategory) {
-                        $q->where('category_id', $selectedCategory);
-                    });
-                });
+                $userQuery->where('category_id', $selectedCategory);
             }
 
             $users = $userQuery->latest()->get();
@@ -112,14 +106,7 @@ class DashboardController extends Controller
             $userQuery = User::query();
 
             if ($selectedCategory) {
-                $userQuery->where(function ($query) use ($selectedCategory) {
-                    $query->whereHas('managedProjects', function ($q) use ($selectedCategory) {
-                        $q->where('category_id', $selectedCategory);
-                    })
-                    ->orWhereHas('projects', function ($q) use ($selectedCategory) {
-                        $q->where('category_id', $selectedCategory);
-                    });
-                });
+                $userQuery->where('category_id', $selectedCategory);
             }
 
             $totalUsers = (clone $userQuery)->count();

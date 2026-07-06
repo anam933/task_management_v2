@@ -26,11 +26,14 @@ class ProjectController extends Controller
         $user = Auth::user();
         $filters = $request->only(['search', 'status', 'priority']);
 
+        $selectedCategory = $this->currentCategoryId();
+
         $projectsQuery = Project::with(['manager', 'teamMembers'])
             ->withCount(['tasks', 'tasks as completed_tasks_count' => function ($query) {
                 $query->where('status', 'Completed');
             }])
             ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->latest();
 
         $projectsQuery->when($request->filled('search'), function ($query) use ($request) {
@@ -56,23 +59,38 @@ class ProjectController extends Controller
 
         $projects = $projectsQuery->paginate(9)->withQueryString();
 
+        $statsBase = Project::query()
+            ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory));
+
         $stats = [
-            'totalProjects' => Project::count(),
-            'activeProjects' => Project::where('project_status', 'Active')->count(),
-            'completedProjects' => Project::where('project_status', 'Completed')->count(),
-            'onHoldProjects' => Project::where('project_status', 'On Hold')->count(),
+            'totalProjects' => (clone $statsBase)->count(),
+            'activeProjects' => (clone $statsBase)->where('project_status', 'Active')->count(),
+            'completedProjects' => (clone $statsBase)->where('project_status', 'Completed')->count(),
+            'onHoldProjects' => (clone $statsBase)->where('project_status', 'On Hold')->count(),
         ];
 
         return view('projects.index', array_merge(compact('projects', 'filters'), $stats));
     }
 
     public function create()
-{
+    {
+        $user = Auth::user();
+        $selectedCategory = $this->currentCategoryId();
+        if ($user->hasRole('admin') && !$selectedCategory) {
     $users = User::employees()->orderBy('name')->get();
-    $categories = ProjectCategory::orderBy('category_name')->get();
-
-    return view('projects.create', compact('users', 'categories'));
+} else {
+    $users = User::employees()
+        ->where('category_id', $selectedCategory)
+        ->orderBy('name')
+        ->get();
 }
+        $categories = $user->hasRole('admin')
+            ? ProjectCategory::orderBy('category_name')->get()
+            : ProjectCategory::whereKey($user->category_id)->orderBy('category_name')->get();
+
+        return view('projects.create', compact('users', 'categories'));
+    }
 
     public function store(Request $request)
     {
@@ -84,7 +102,7 @@ class ProjectController extends Controller
                 'project_name' => $data['project_name'],
                 'project_code' => $data['project_code'],
                 'project_description' => $data['project_description'] ?? null,
-                 'category_id' => $data['category_id'],
+                 'category_id' => session('current_category_id'),
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'] ?? null,
                 'project_manager_id' => $data['project_manager_id'],
@@ -143,12 +161,22 @@ class ProjectController extends Controller
             Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
             403
         );
-        $users = User::employees()->orderBy('name')->get();
-$categories = ProjectCategory::orderBy('category_name')->get();
 
-$project->load('teamMembers');
+       if ($user->hasRole('admin') && !$selectedCategory) {
+    $users = User::employees()->orderBy('name')->get();
+} else {
+    $users = User::employees()
+        ->where('category_id', $selectedCategory)
+        ->orderBy('name')
+        ->get();
+}
+        $categories = Auth::user()->hasRole('admin')
+            ? ProjectCategory::orderBy('category_name')->get()
+            : ProjectCategory::whereKey(Auth::user()->category_id)->orderBy('category_name')->get();
 
-return view('projects.edit', compact('project', 'users', 'categories'));
+        $project->load('teamMembers');
+
+        return view('projects.edit', compact('project', 'users', 'categories'));
     }
 
     public function update(Request $request, Project $project)
@@ -230,16 +258,20 @@ return view('projects.edit', compact('project', 'users', 'categories'));
             ->with('success', 'Project deleted successfully.');
     }
 
-    private function validateProject(Request $request)
-{
-    return $request->validate([
-        'project_name' => 'required|string|max:255',
-        'project_code' => 'required|string|unique:projects,project_code',
-        'project_description' => 'nullable|string',
+    private function validateProject(Request $request, ?int $projectId = null)
+    {
+        return $request->validate([
+            'project_name' => 'required|string|max:255',
+            'project_code' => [
+                'required',
+                'string',
+                Rule::unique('projects', 'project_code')->ignore($projectId),
+            ],
+            'project_description' => 'nullable|string',
 
-        'category_id' => 'required|exists:categories,id', // 🔥 FIX
+            
 
-        'start_date' => 'required|date',
+            'start_date' => 'required|date',
         'end_date' => 'nullable|date|after_or_equal:start_date',
 
         'project_manager_id' => 'required|exists:users,id',

@@ -22,9 +22,11 @@ class DailyStandupReportController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $selectedCategory = $this->currentCategoryId();
 
         $reportsQuery = DailyStandupReport::with(['user', 'project'])
             ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->latest('report_date')
             ->latest('id');
 
@@ -42,14 +44,19 @@ class DailyStandupReportController extends Controller
 
         $reports = $reportsQuery->paginate(10)->withQueryString();
 
-        $statsBase = DailyStandupReport::query()->visibleTo($user);
+        $statsBase = DailyStandupReport::query()
+            ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory));
 
         $todayReports = (clone $statsBase)->whereDate('report_date', today())->count();
         $weekReports = (clone $statsBase)->whereBetween('report_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])->count();
         $blockedReports = (clone $statsBase)->whereNotNull('blockers')->where('blockers', '!=', '')->count();
         $totalReports = (clone $statsBase)->count();
 
-        $projects = Project::visibleTo($user)->orderBy('project_name')->get();
+        $projects = Project::visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
         $employees = $user->hasRole(['admin', 'manager'])
             ? User::employees()->orderBy('name')->get()
             : collect([$user]);
@@ -70,7 +77,11 @@ class DailyStandupReportController extends Controller
 
     public function create()
     {
-        $projects = Project::visibleTo(Auth::user())->orderBy('project_name')->get();
+        $selectedCategory = $this->currentCategoryId();
+        $projects = Project::visibleTo(Auth::user())
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
 
         return view('standup_reports.create', compact('projects'));
     }

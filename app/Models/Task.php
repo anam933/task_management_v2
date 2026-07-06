@@ -15,6 +15,7 @@ class Task extends Model
         'priority',
         'assigned_to',
         'assigned_by',
+        'reviewer_id',
         'status',
         'task_category_id',
         'project_id',
@@ -44,6 +45,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
@@ -69,6 +75,16 @@ class Task extends Model
                             $teamQuery->whereKey($user->id);
                         });
                 });
+        });
+    }
+
+    public function scopeCurrentCategory($query, ?int $categoryId)
+    {
+        if (!$categoryId) {
+            return $query;
+        }
+        return $query->whereHas('project', function ($projectQuery) use ($categoryId) {
+            $projectQuery->where('category_id', $categoryId);
         });
     }
 }

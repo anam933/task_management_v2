@@ -14,6 +14,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Role</th>
+        <th>Reporting To</th>
         <th>Created By</th>
         <th>Action</th>
     </tr>
@@ -24,6 +25,7 @@
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ ucfirst($user->role) }}</td>
+        <td>{{ optional($user->manager)->name ?? 'None' }}</td>
         <td>{{ optional($user->creator)->name ?? 'System' }}</td>
 
         <td>

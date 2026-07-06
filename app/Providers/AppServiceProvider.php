@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use App\Models\Project;
+use App\Models\ProjectCategory;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -38,5 +41,20 @@ class AppServiceProvider extends ServiceProvider
                 return $user->canAccess($permission, $context);
             });
         }
+
+        View::composer('*', function ($view): void {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $categories = $user->hasRole('admin')
+                    ? ProjectCategory::orderBy('category_name')->get()
+                    : ProjectCategory::whereKey($user->category_id)->orderBy('category_name')->get();
+
+                $currentCategoryId = session('current_category_id');
+                $currentCategoryId = $currentCategoryId !== null ? (int) $currentCategoryId : null;
+
+                $view->with('navCategories', $categories);
+                $view->with('currentCategoryId', $currentCategoryId);
+            }
+        });
     }
 }

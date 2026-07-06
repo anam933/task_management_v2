@@ -199,24 +199,24 @@
                 </div>
             </div>
 
-            <div class="col-lg-5">
+            <!-- <div class="col-lg-5">
                 <div class="card filter-card h-100">
                     <div class="card-body">
                         <form method="GET" class="row gx-3 gy-3">
                             <div class="col-12">
                                 <label class="form-label">Select Project Category</label>
-                                <select name="category_id" class="form-control" onchange="this.form.submit()">
+                                 <select name="category_id" class="form-control" onchange="this.form.submit()">
                                     <option value="">All Categories</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" {{ $selectedCategory == $category->id ? 'selected' : '' }}>{{ $category->category_name }}</option>
                                     @endforeach
-                                </select>
-                            </div>
-                        </form>
+                                </select> -->
+                            
+                        <!-- </form>
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --> 
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 metric-grid">
             <div class="col">

@@ -22,9 +22,11 @@ class MeetingMinuteController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $selectedCategory = $this->currentCategoryId();
 
         $meetingQuery = MeetingMinute::with(['user', 'project'])
             ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->latest('meeting_date')
             ->latest('id');
 
@@ -42,13 +44,19 @@ class MeetingMinuteController extends Controller
 
         $meetings = $meetingQuery->paginate(10)->withQueryString();
 
-        $statsBase = MeetingMinute::query()->visibleTo($user);
+        $statsBase = MeetingMinute::query()
+            ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory));
+
         $todayMeetings = (clone $statsBase)->whereDate('meeting_date', today())->count();
         $weekMeetings = (clone $statsBase)->whereBetween('meeting_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])->count();
         $decisionMeetings = (clone $statsBase)->whereNotNull('decisions')->where('decisions', '!=', '')->count();
         $totalMeetings = (clone $statsBase)->count();
 
-        $projects = Project::visibleTo($user)->orderBy('project_name')->get();
+        $projects = Project::visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
         $employees = $user->hasRole(['admin', 'manager'])
             ? User::employees()->orderBy('name')->get()
             : collect([$user]);
@@ -69,7 +77,11 @@ class MeetingMinuteController extends Controller
 
     public function create()
     {
-        $projects = Project::visibleTo(Auth::user())->orderBy('project_name')->get();
+        $selectedCategory = $this->currentCategoryId();
+        $projects = Project::visibleTo(Auth::user())
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
 
         return view('meeting_minutes.create', compact('projects'));
     }

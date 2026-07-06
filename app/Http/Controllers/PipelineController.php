@@ -17,8 +17,11 @@ class PipelineController extends Controller
 
     public function kanbanBoard()
     {
+        $selectedCategory = $this->currentCategoryId();
+
         $tasks = Task::with(['assignedUser', 'assignedByUser', 'project', 'tags'])
             ->visibleTo(Auth::user())
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->get();
         return view('kanban_board', compact('tasks'));
     }

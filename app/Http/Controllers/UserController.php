@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProjectCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -16,16 +19,39 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = auth()->user()->hasRole('manager')
-            ? User::with('creator')->employees()->latest()->get()
-            : User::with('creator')->latest()->get();
+        $user = auth()->user();
+        $selectedCategory = $this->currentCategoryId();
+
+        $users = User::with(['creator', 'manager'])
+            ->when(! $user->hasRole('admin'), function ($query) use ($user) {
+                $query->where('category_id', $user->category_id);
+            })
+            ->when($user->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->latest()
+            ->get();
 
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('users.create');
+        $user = auth()->user();
+        $selectedCategory = $this->currentCategoryId();
+
+        // Fetch managers in the active category to populate reports_to dropdown for Admin
+        $managers = User::where('role', 'manager')
+            ->when(! $user->hasRole('admin'), function ($query) use ($user) {
+                $query->where('category_id', $user->category_id);
+            })
+            ->when($user->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('users.create', compact('managers'));
     }
 
     public function store(Request $request)
@@ -35,33 +61,80 @@ class UserController extends Controller
             ? 'required|in:employee'
             : 'required|in:admin,manager,employee';
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|unique:users',
-            'password' => 'required',
-            'role' => $roleRule,
-        ]);
-
         $role = $currentUser->hasRole('manager') ? 'employee' : $request->role;
+        $categoryId = $currentUser->hasRole('admin') ? $this->currentCategoryId() : $currentUser->category_id;
 
-        User::create([
+        if ($role !== 'admin' && !$categoryId) {
+            return back()->withErrors(['role' => 'Please select a project category from the top navigation first.'])->withInput();
+        }
+
+        $rules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role' => $roleRule,
+            'phone' => 'nullable|string|max:20',
+        ];
+
+        // If Admin creates Employee, they must choose a Manager from the current category
+        if ($currentUser->hasRole('admin') && $role === 'employee') {
+            $rules['reports_to'] = [
+                'required',
+                Rule::exists('users', 'id')->where(function ($query) use ($categoryId) {
+                    $query->where('role', 'manager')->where('category_id', $categoryId);
+                }),
+            ];
+        }
+
+        $request->validate($rules);
+
+        $reportsTo = null;
+        if ($role === 'manager') {
+            if ($currentUser->hasRole('admin')) {
+                $reportsTo = $currentUser->id;
+            }
+        } elseif ($role === 'employee') {
+            if ($currentUser->hasRole('admin')) {
+                $reportsTo = $request->reports_to;
+            } else {
+                $reportsTo = $currentUser->id;
+            }
+        }
+
+        $createPayload = [
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'role' => $role,
             'created_by' => $currentUser->id,
+            'reports_to' => $reportsTo,
             'password' => Hash::make($request->password),
-        ]);
+            'category_id' => $role === 'admin' ? null : $categoryId,
+        ];
 
-        return redirect('/users')->with('success','User Added Successfully');
+        User::create($createPayload);
+
+        return redirect('/users')->with('success', 'User Added Successfully');
     }
 
     public function edit($id)
     {
         $user = User::findOrFail($id);
         abort_unless(auth()->user()->hasRole('admin') || $user->hasRole('employee'), 403);
+        $currentUser = auth()->user();
+        $selectedCategory = $this->currentCategoryId();
 
-        return view('users.edit', compact('user'));
+        $managers = User::where('role', 'manager')
+            ->when(! $currentUser->hasRole('admin'), function ($query) use ($currentUser) {
+                $query->where('category_id', $currentUser->category_id);
+            })
+            ->when($currentUser->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('users.edit', compact('user', 'managers'));
     }
 
     public function show(User $user)
@@ -69,7 +142,7 @@ class UserController extends Controller
         return redirect()->route('users.edit', $user->id);
     }
 
-    public function update(Request $request,$id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
         abort_unless(auth()->user()->hasRole('admin') || $user->hasRole('employee'), 403);
@@ -79,22 +152,60 @@ class UserController extends Controller
             ? 'required|in:employee'
             : 'required|in:admin,manager,employee';
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|unique:users,email,' . $user->id,
-            'role' => $roleRule,
-        ]);
-
         $role = $currentUser->hasRole('manager') ? 'employee' : $request->role;
+        $categoryId = $currentUser->hasRole('admin') ? $this->currentCategoryId() : $currentUser->category_id;
 
-        $user->update([
-            'name'=>$request->name,
-            'email'=>$request->email,
-            'phone'=>$request->phone,
-            'role'=>$role,
-        ]);
+        if ($role !== 'admin' && !$categoryId) {
+            return back()->withErrors(['role' => 'Please select a project category from the top navigation first.'])->withInput();
+        }
 
-        return redirect('/users')->with('success','User Updated');
+        $rules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => $roleRule,
+            'phone' => 'nullable|string|max:20',
+        ];
+
+        if ($currentUser->hasRole('admin') && $role === 'employee') {
+            $rules['reports_to'] = [
+                'required',
+                Rule::exists('users', 'id')->where(function ($query) use ($categoryId) {
+                    $query->where('role', 'manager')->where('category_id', $categoryId);
+                }),
+            ];
+        }
+
+        $request->validate($rules);
+
+        $reportsTo = $user->reports_to;
+        if ($role === 'manager') {
+            if ($currentUser->hasRole('admin')) {
+                $reportsTo = $currentUser->id;
+            } else {
+                $reportsTo = null;
+            }
+        } elseif ($role === 'employee') {
+            if ($currentUser->hasRole('admin')) {
+                $reportsTo = $request->reports_to;
+            } else {
+                $reportsTo = $currentUser->id;
+            }
+        } else {
+            $reportsTo = null;
+        }
+
+        $updatePayload = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'role' => $role,
+            'reports_to' => $reportsTo,
+            'category_id' => $role === 'admin' ? null : $categoryId,
+        ];
+
+        $user->update($updatePayload);
+
+        return redirect('/users')->with('success', 'User Updated');
     }
 
     public function destroy($id)
@@ -104,6 +215,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect('/users')->with('success','User Deleted');
+        return redirect('/users')->with('success', 'User Deleted');
     }
 }

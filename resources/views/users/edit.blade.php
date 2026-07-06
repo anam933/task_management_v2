@@ -48,12 +48,37 @@
                 <div class="form-control bg-light">Employee</div>
                 <small class="text-muted">Managers can edit employees only.</small>
             @else
-                <select name="role" class="form-control">
-                    <option value="admin" {{ $user->role=='admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="manager" {{ $user->role=='manager' ? 'selected' : '' }}>Manager</option>
-                    <option value="employee" {{ $user->role=='employee' ? 'selected' : '' }}>Employee</option>
+                <select name="role" class="form-control @error('role') is-invalid @enderror">
+                    <option value="admin" {{ (old('role', $user->role) == 'admin') ? 'selected' : '' }}>Admin</option>
+                    <option value="manager" {{ (old('role', $user->role) == 'manager') ? 'selected' : '' }}>Manager</option>
+                    <option value="employee" {{ (old('role', $user->role) == 'employee') ? 'selected' : '' }}>Employee</option>
                 </select>
+                @error('role')
+                    <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                @enderror
             @endif
+        </div>
+
+        @if(auth()->user()->hasRole('admin'))
+            <div class="mb-3" id="reports-to-group" style="display: none;">
+                <label>Reporting Manager</label>
+                <select name="reports_to" class="form-control @error('reports_to') is-invalid @enderror">
+                    <option value="">Select Reporting Manager</option>
+                    @foreach($managers as $manager)
+                        <option value="{{ $manager->id }}" {{ old('reports_to', $user->reports_to) == $manager->id ? 'selected' : '' }}>
+                            {{ $manager->name }} ({{ $manager->category?->category_name ?? 'No Category' }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('reports_to')
+                    <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                @enderror
+            </div>
+        @endif
+
+        <div class="mb-3">
+            <label>Category (Department)</label>
+            <div class="form-control bg-light">{{ $user->category?->category_name ?? 'N/A' }}</div>
         </div>
 
         <button type="submit" class="btn btn-primary">
@@ -71,4 +96,26 @@
 
 </div>
 
+@endsection
+
+@section('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.querySelector('select[name="role"]');
+        const reportsToGroup = document.getElementById('reports-to-group');
+
+        function toggleReportsTo() {
+            if (roleSelect && roleSelect.value === 'employee') {
+                if (reportsToGroup) reportsToGroup.style.display = 'block';
+            } else {
+                if (reportsToGroup) reportsToGroup.style.display = 'none';
+            }
+        }
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleReportsTo);
+            toggleReportsTo(); // Initialize
+        }
+    });
+</script>
 @endsection

@@ -27,10 +27,12 @@ class TaskController extends Controller
 
         $projects = Project::visibleTo($user)->orderBy('project_name')->get();
 
-        $tasksQuery = Task::with(['category', 'legacyCategory', 'assignedUser', 'assignedByUser', 'project', 'tags'])
-            ->latest();
+        $selectedCategory = $this->currentCategoryId();
 
-        $tasksQuery->visibleTo($user);
+        $tasksQuery = Task::with(['category', 'legacyCategory', 'assignedUser', 'assignedByUser', 'project', 'tags'])
+            ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->latest();
 
         if (request()->filled('project_id')) {
             $tasksQuery->where('project_id', request('project_id'));
@@ -38,7 +40,9 @@ class TaskController extends Controller
 
         $tasks = $tasksQuery->get();
 
-        $statsQuery = Task::query()->visibleTo($user);
+        $statsQuery = Task::query()
+            ->visibleTo($user)
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory));
 
         if (request()->filled('project_id')) {
             $statsQuery->where('project_id', request('project_id'));
@@ -61,12 +65,16 @@ class TaskController extends Controller
 
     public function create()
 {
-    $users = User::orderBy('name')->get();
+        $selectedCategory = $this->currentCategoryId();
 
-    $categories = TaskCategory::orderBy('category_name')->get();
-    $tags = Tag::orderBy('name')->get();
-    $projects = Project::visibleTo(Auth::user())->orderBy('project_name')->get();
-    $selectedTagIds = [];
+        $users = User::orderBy('name')->get();
+        $categories = TaskCategory::orderBy('category_name')->get();
+        $tags = Tag::orderBy('name')->get();
+        $projects = Project::visibleTo(Auth::user())
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
+        $selectedTagIds = [];
 
     return view('tasks.create', compact(
         'users',
@@ -123,10 +131,15 @@ class TaskController extends Controller
             Auth::user()->hasRole('admin') || Task::visibleTo(Auth::user())->whereKey($task->id)->exists(),
             403
         );
-       $users = User::orderBy('name')->get();
+
+        $selectedCategory = $this->currentCategoryId();
+        $users = User::orderBy('name')->get();
         $categories = TaskCategory::orderBy('category_name')->get();
         $tags = Tag::orderBy('name')->get();
-        $projects = Project::visibleTo(Auth::user())->orderBy('project_name')->get();
+        $projects = Project::visibleTo(Auth::user())
+            ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
+            ->orderBy('project_name')
+            ->get();
         $selectedTagIds = $task->tags()->pluck('tags.id')->all();
 
         return view('tasks.edit', compact('task', 'users', 'categories', 'projects', 'tags', 'selectedTagIds'));

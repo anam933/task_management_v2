@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
@@ -67,7 +68,22 @@ Route::resource('Task_category', TaskCategoryController::class)
 
 
 Route::resource('Project_category', ProjectCategoryController::class)
-    ->middleware('can:manage-project-categories');   
+    ->middleware('can:manage-project-categories');
+
+Route::get('category/select', function (Request $request) {
+    $user = $request->user();
+    $categoryId = $request->query('category_id');
+
+    if ($user?->hasRole('admin')) {
+        if ($categoryId !== null && $categoryId !== '' && ctype_digit((string) $categoryId)) {
+            $request->session()->put('current_category_id', (int) $categoryId);
+        } else {
+            $request->session()->forget('current_category_id');
+        }
+    }
+
+    return redirect()->to(url()->previous() ?: route('dashboard'));
+})->name('category.select')->middleware('auth');
 
 
 

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\DailyStandupReport;
 use App\Models\MeetingMinute;
+use App\Models\ProjectCategory;
 use Illuminate\Support\Arr;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,7 +27,9 @@ class User extends Authenticatable
         'email',
         'phone',
         'role',
+        'category_id',
         'created_by',
+        'reports_to',
         'password',
     ];
 
@@ -63,6 +66,16 @@ class User extends Authenticatable
         return ucfirst($this->normalizedRole());
     }
 
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'reports_to');
+    }
+
+    public function subordinates()
+    {
+        return $this->hasMany(User::class, 'reports_to');
+    }
+
     public function managedProjects()
     {
         return $this->hasMany(Project::class, 'project_manager_id');
@@ -83,6 +96,11 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'created_by');
     }
 
+    public function category()
+    {
+        return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
+
     public function standupReports()
     {
         return $this->hasMany(DailyStandupReport::class);
@@ -91,6 +109,20 @@ class User extends Authenticatable
     public function scopeEmployees($query)
     {
         return $query->whereRaw('LOWER(role) = ?', ['employee']);
+    }
+
+    public function scopeVisibleTo($query, User $user)
+    {
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+
+        return $query->where('category_id', $user->category_id);
+    }
+
+    public function scopeCurrentCategory($query, int $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
     }
 
     public function hasRole(string|array $roles): bool

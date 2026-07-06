@@ -17,11 +17,17 @@ class MeetingMinute extends Model
         'decisions',
         'action_items',
         'notes',
+        'category_id',
     ];
 
     protected $casts = [
         'meeting_date' => 'date',
     ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
 
     public function user(): BelongsTo
     {
@@ -35,10 +41,21 @@ class MeetingMinute extends Model
 
     public function scopeVisibleTo($query, User $user)
     {
-        if ($user->hasRole(['admin', 'manager'])) {
+        if ($user->hasRole('admin')) {
             return $query;
         }
 
-        return $query->where('user_id', $user->id);
+        return $query->where(function ($builder) use ($user) {
+            $builder->where('user_id', $user->id)
+                ->orWhere('category_id', $user->category_id);
+        });
+    }
+
+    public function scopeCurrentCategory($query, ?int $categoryId)
+    {
+        if (!$categoryId) {
+            return $query;
+        }
+        return $query->where('category_id', $categoryId);
     }
 }
