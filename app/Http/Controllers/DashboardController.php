@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\TaskCategory;
 use App\Models\Project;
 use App\Models\ProjectCategory;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -46,15 +47,22 @@ class DashboardController extends Controller
         }
 
         if ($showSystemStats) {
-            $userQuery = User::query();
+           $userQuery = User::query();
 
-            if ($selectedCategory) {
-                $userQuery->where('category_id', $selectedCategory);
-            }
+if ($user->hasRole('manager')) {
 
-            $users = $userQuery->latest()->get();
-            $totalUsers = (clone $userQuery)->count();
+    $userQuery->where(function ($q) use ($user) {
+        $q->where('id', $user->id)
+          ->orWhere('reports_to', $user->id);
+    });
 
+}
+
+if ($selectedCategory) {
+    $userQuery->where('category_id', $selectedCategory);
+}
+$users = $userQuery->latest()->get();
+$totalUsers = (clone $userQuery)->count();
             $categoryQuery = TaskCategory::query();
 
             if ($selectedCategory) {
@@ -103,13 +111,29 @@ class DashboardController extends Controller
         } else {
             $users = collect();
 
-            $userQuery = User::query();
+           $userQuery = User::query();
 
-            if ($selectedCategory) {
-                $userQuery->where('category_id', $selectedCategory);
-            }
+if ($user->hasRole('admin')) {
 
-            $totalUsers = (clone $userQuery)->count();
+    if ($selectedCategory) {
+        $userQuery->where('category_id', $selectedCategory);
+    }
+
+} elseif ($user->hasRole('manager')) {
+
+    $userQuery->where(function ($q) use ($user) {
+        $q->where('id', $user->id)
+          ->orWhere('reports_to', $user->id);
+    });
+
+} else {
+
+    $userQuery->where('id', $user->id);
+
+}
+
+$users = $userQuery->latest()->get();
+$totalUsers = (clone $userQuery)->count();
 
             $categoryQuery = TaskCategory::query();
 
@@ -166,6 +190,62 @@ class DashboardController extends Controller
                 ->count();
         }
 
+
+        $today = Carbon::today();
+
+            $overdueTasks = Task::visibleTo($user)
+                ->whereDate('deadline_date', '<', $today)
+                ->whereNotIn('status', ['Completed'])
+                ->count();
+
+            $todayDeadlineTasks = Task::visibleTo($user)
+                ->whereDate('deadline_date', $today)
+                ->whereNotIn('status', ['Completed'])
+                ->count();
+
+                $upcomingTasks = Task::query()
+
+    ->when($selectedCategory, function ($query) use ($selectedCategory) {
+
+        $query->whereHas('project', function ($q) use ($selectedCategory) {
+
+            $q->where('category_id', $selectedCategory);
+
+        });
+
+    })
+
+    ->when($user->hasRole('employee'), function ($query) use ($user) {
+
+        $query->where('assigned_to', $user->id);
+
+    })
+
+    ->when($user->hasRole('manager'), function ($query) use ($user) {
+
+        $query->where(function ($q) use ($user) {
+
+            $q->where('assigned_to', $user->id)
+              ->orWhere('reports_to', $user->id);
+
+        });
+
+    })
+
+    ->whereIn('status', ['Pending','In Progress'])
+
+    ->whereDate('deadline_date','<=', now()->addDays(2))
+
+    ->orderBy('deadline_date')
+
+    ->take(5)
+
+    ->get();
+
+
+
+
+        
         return view('dashboard.index', compact(
             'users',
             'showSystemStats',
@@ -182,7 +262,10 @@ class DashboardController extends Controller
             'myInProgressTasks',
             'myCompletedTasks',
             'categories',
-            'selectedCategory'
+            'selectedCategory',
+            'overdueTasks',
+            'todayDeadlineTasks',
+            'upcomingTasks' 
         ));
     }
 }

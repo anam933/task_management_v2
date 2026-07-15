@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectCategory;
 
+
 class ProjectController extends Controller
 {
     public function __construct()
@@ -74,59 +75,117 @@ class ProjectController extends Controller
     }
 
     public function create()
-    {
-        $user = Auth::user();
-        $selectedCategory = $this->currentCategoryId();
-        if ($user->hasRole('admin') && !$selectedCategory) {
-    $users = User::employees()->orderBy('name')->get();
-} else {
-    $users = User::employees()
-        ->where('category_id', $selectedCategory)
-        ->orderBy('name')
-        ->get();
+{
+    $user = Auth::user();
+    $selectedCategory = $this->currentCategoryId();
+
+    // Active Departments
+    
+
+    // Admin
+    if ($user->hasRole('admin')) {
+
+        $managers = User::where('role', 'manager')
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $reportingManagers = User::where('role', 'manager')
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $employees = User::employees()
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+    } else {
+
+        // Logged in manager becomes Project Manager
+        $managers = collect([$user]);
+
+        // Logged in manager is also Reporting Manager
+        $reportingManagers = collect([$user]);
+
+        // Employees reporting to this manager
+        $employees = User::employees()
+            ->where('reports_to', $user->id)
+            ->orderBy('name')
+            ->get();
+    }
+
+    $categories = $user->hasRole('admin')
+        ? ProjectCategory::orderBy('category_name')->get()
+        : ProjectCategory::whereKey($user->category_id)
+            ->orderBy('category_name')
+            ->get();
+
+    return view('projects.create', compact(
+        'managers',
+        'employees',
+        'categories',
+        'reportingManagers',
+        
+    ));
 }
-        $categories = $user->hasRole('admin')
-            ? ProjectCategory::orderBy('category_name')->get()
-            : ProjectCategory::whereKey($user->category_id)->orderBy('category_name')->get();
 
-        return view('projects.create', compact('users', 'categories'));
-    }
+   public function store(Request $request)
+{
+    $data = $this->validateProject($request);
+    $project = null;
 
-    public function store(Request $request)
-    {
-        $data = $this->validateProject($request);
-        $project = null;
+    DB::transaction(function () use ($data, $request, &$project) {
 
-        DB::transaction(function () use ($data, $request, &$project) {
-            $project = Project::create([
-                'project_name' => $data['project_name'],
-                'project_code' => $data['project_code'],
-                'project_description' => $data['project_description'] ?? null,
-                 'category_id' => session('current_category_id'),
-                'start_date' => $data['start_date'],
-                'end_date' => $data['end_date'] ?? null,
-                'project_manager_id' => $data['project_manager_id'],
-                'project_status' => $data['project_status'],
-                'priority' => $data['priority'],
-                'budget' => $data['budget'] ?? null,
-                'created_by' => auth()->id() ?? 1,
-            ]);
+        $project = Project::create([
+            'project_name' => $data['project_name'],
+            'project_code' => $data['project_code'],
+            'project_description' => $data['project_description'] ?? null,
 
-            $project->teamMembers()->sync($data['team_members'] ?? []);
+            'category_id' => session('current_category_id'),
+            
 
-            $this->logActivity(
-                project: $project,
-                event: 'created',
-                title: 'Project Created',
-                description: 'Project "' . $project->project_name . '" was created.',
-                metadata: ['status' => $project->project_status, 'priority' => $project->priority]
-            );
-        });
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'] ?? null,
 
-        return redirect()
-            ->route('projects.index')
-            ->with('success', 'Project created successfully.');
-    }
+            'project_manager_id' => $data['project_manager_id'],
+
+            'project_status' => $data['project_status'],
+            'priority' => $data['priority'],
+
+            'budget' => $data['budget'] ?? null,
+
+            'reports_to' => $data['reports_to'] ?? null,
+
+            'created_by' => auth()->id() ?? 1,
+
+            'assigned_to' => $data['assigned_to'] ?? null,
+        ]);
+
+        $project->teamMembers()->sync($data['team_members'] ?? []);
+
+        $this->logActivity(
+            project: $project,
+            event: 'created',
+            title: 'Project Created',
+            description: 'Project "' . $project->project_name . '" was created.',
+            metadata: [
+                'status' => $project->project_status,
+                'priority' => $project->priority
+            ]
+        );
+    });
+
+    return redirect()
+        ->route('projects.index')
+        ->with('success', 'Project created successfully.');
+}
 
     public function show(Project $project)
     {
@@ -155,79 +214,143 @@ class ProjectController extends Controller
         return view('projects.show', compact('project', 'totalTasks', 'completedTasks', 'progress'));
     }
 
-    public function edit(Project $project)
-    {
-        abort_unless(
-            Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
-            403
-        );
+   public function edit(Project $project)
+{
+    abort_unless(
+        Auth::user()->hasRole('admin') ||
+        Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
+        403
+    );
 
-       if ($user->hasRole('admin') && !$selectedCategory) {
-    $users = User::employees()->orderBy('name')->get();
-} else {
-    $users = User::employees()
-        ->where('category_id', $selectedCategory)
-        ->orderBy('name')
-        ->get();
-}
-        $categories = Auth::user()->hasRole('admin')
-            ? ProjectCategory::orderBy('category_name')->get()
-            : ProjectCategory::whereKey(Auth::user()->category_id)->orderBy('category_name')->get();
+    $user = Auth::user();
+    $selectedCategory = $this->currentCategoryId();
 
-        $project->load('teamMembers');
+    // Active Departments
+   
 
-        return view('projects.edit', compact('project', 'users', 'categories'));
+    // Admin
+    if ($user->hasRole('admin')) {
+
+        $managers = User::where('role', 'manager')
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $reportingManagers = User::where('role', 'manager')
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $employees = User::employees()
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            })
+            ->orderBy('name')
+            ->get();
+
+    } else {
+
+        // Logged in manager
+        $managers = collect([$user]);
+
+        // Logged in manager is also Reporting Manager
+        $reportingManagers = collect([$user]);
+
+        // Employees under this manager
+        $employees = User::employees()
+            ->where('reports_to', $user->id)
+            ->orderBy('name')
+            ->get();
     }
 
-    public function update(Request $request, Project $project)
-    {
-        abort_unless(
-            Auth::user()->hasRole('admin') || Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
-            403
+    $categories = $user->hasRole('admin')
+        ? ProjectCategory::orderBy('category_name')->get()
+        : ProjectCategory::whereKey($user->category_id)
+            ->orderBy('category_name')
+            ->get();
+
+    $project->load('teamMembers');
+
+    return view('projects.edit', compact(
+        'project',
+        'managers',
+        'employees',
+        'categories',
+        'reportingManagers',
+       
+    ));
+}
+
+   public function update(Request $request, Project $project)
+{
+    abort_unless(
+        Auth::user()->hasRole('admin') ||
+        Project::visibleTo(Auth::user())->whereKey($project->id)->exists(),
+        403
+    );
+
+    $data = $this->validateProject($request, $project->id);
+    $originalStatus = $project->project_status;
+
+    DB::transaction(function () use ($project, $data, $originalStatus) {
+
+        $project->update([
+            'project_name' => $data['project_name'],
+            'project_code' => $data['project_code'],
+            'project_description' => $data['project_description'] ?? null,
+
+            'category_id' => $data['category_id'] ?? null,
+           
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'] ?? null,
+
+            'project_manager_id' => $data['project_manager_id'],
+            'assigned_to' => $data['assigned_to'] ?? null,
+
+            'project_status' => $data['project_status'],
+            'priority' => $data['priority'],
+
+            'budget' => $data['budget'] ?? null,
+
+            'reports_to' => $data['reports_to'] ?? null,
+        ]);
+
+        $project->teamMembers()->sync($data['team_members'] ?? []);
+
+        $this->logActivity(
+            project: $project,
+            event: 'updated',
+            title: 'Project Updated',
+            description: 'Project "' . $project->project_name . '" was updated.',
+            metadata: [
+                'status' => $project->project_status,
+                'priority' => $project->priority,
+            ]
         );
-        $data = $this->validateProject($request, $project->id);
-        $originalStatus = $project->project_status;
 
-        DB::transaction(function () use ($project, $data, $originalStatus) {
-            $project->update([
-                'project_name' => $data['project_name'],
-                'project_code' => $data['project_code'],
-                'project_description' => $data['project_description'] ?? null,
-                'category_id' => $data['category_id'] ?? null,
-                
-                'start_date' => $data['start_date'],
-                'end_date' => $data['end_date'] ?? null,
-                'project_manager_id' => $data['project_manager_id'],
-                'project_status' => $data['project_status'],
-                'priority' => $data['priority'],
-                'budget' => $data['budget'] ?? null,
-            ]);
-
-            $project->teamMembers()->sync($data['team_members'] ?? []);
+        if ($originalStatus !== $project->project_status) {
 
             $this->logActivity(
                 project: $project,
-                event: 'updated',
-                title: 'Project Updated',
-                description: 'Project "' . $project->project_name . '" was updated.',
-                metadata: ['status' => $project->project_status, 'priority' => $project->priority]
+                event: 'status_changed',
+                title: 'Project Status Changed',
+                description: 'Project status changed from ' . $originalStatus . ' to ' . $project->project_status . '.',
+                metadata: [
+                    'from' => $originalStatus,
+                    'to' => $project->project_status,
+                ]
             );
+        }
+    });
 
-            if ($originalStatus !== $project->project_status) {
-                $this->logActivity(
-                    project: $project,
-                    event: 'status_changed',
-                    title: 'Project Status Changed',
-                    description: 'Project status changed from ' . $originalStatus . ' to ' . $project->project_status . '.',
-                    metadata: ['from' => $originalStatus, 'to' => $project->project_status]
-                );
-            }
-        });
-
-        return redirect()
-            ->route('projects.index')
-            ->with('success', 'Project updated successfully.');
-    }
+    return redirect()
+        ->route('projects.index')
+        ->with('success', 'Project updated successfully.');
+}
 
     public function destroy(Project $project)
     {
@@ -259,29 +382,36 @@ class ProjectController extends Controller
     }
 
     private function validateProject(Request $request, ?int $projectId = null)
-    {
-        return $request->validate([
-            'project_name' => 'required|string|max:255',
-            'project_code' => [
-                'required',
-                'string',
-                Rule::unique('projects', 'project_code')->ignore($projectId),
-            ],
-            'project_description' => 'nullable|string',
+{
+    return $request->validate([
+        'project_name' => 'required|string|max:255',
 
-            
+        'project_code' => [
+            'required',
+            'string',
+            Rule::unique('projects', 'project_code')->ignore($projectId),
+        ],
 
-            'start_date' => 'required|date',
+        'project_description' => 'nullable|string',
+
+       
+
+        'start_date' => 'required|date',
         'end_date' => 'nullable|date|after_or_equal:start_date',
 
         'project_manager_id' => 'required|exists:users,id',
 
-        'project_status' => 'required|string',
+        'project_status' => 'required|in:Planning,Active,On Hold',
+
         'priority' => 'required|string',
+
+        'reports_to' => 'nullable|exists:users,id',
 
         'budget' => 'nullable|numeric',
 
         'team_members' => 'nullable|array',
+
+        'assigned_to' => 'nullable|exists:users,id',
     ]);
 }
 

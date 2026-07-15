@@ -1,15 +1,8 @@
 @extends('adminlte::page')
 
-@section('title', 'Dashboard')
 
-@section('content_header')
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h1 class="mb-1">Task Management Dashboard</h1>
-            <p class="text-muted mb-0">Executive overview of users, tasks, and project delivery.</p>
-        </div>
-    </div>
-@stop
+
+
 
 @section('css')
     <style>
@@ -39,7 +32,7 @@
             position: relative;
             overflow: hidden;
             color: var(--text);
-            min-height: 170px;
+            min-height: 180px;
             box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             background: var(--surface);
@@ -52,7 +45,7 @@
         }
 
         .metric-card .metric-label {
-            font-size: 0.78rem;
+            font-size: 0.81rem;
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
@@ -178,47 +171,54 @@
     </style>
 @stop
 
+@section('title', 'Dashboard')
+
+
+
+
+
+@section('content_header')
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="mb-1">Task Management Dashboard</h1>
+            <p class="text-muted mb-0">Executive overview of users, tasks, and project delivery.</p>
+        </div>
+    </div>
+@stop
+
 @section('content')
 <div class="dashboard-shell">
     @if($showSystemStats)
-        <div class="row gy-4 mb-4">
-            <div class="col-lg-7">
-                <div class="card dashboard-welcome h-100">
-                    <div class="card-body">
-                        <div class="d-flex flex-column h-100 justify-content-between">
-                            <div>
-                                <span class="badge badge-pill badge-primary mb-3 px-3 py-2" style="background:#6366f1; color:#fff; letter-spacing:.08em; font-size:.78rem;">System Insights</span>
-                                <h2 class="mb-2">Welcome to your workspace</h2>
-                                <p class="text-muted mb-0">Track user growth, task throughput, and project health at a glance. This dashboard now uses cleaner cards and a softer palette for easier reading.</p>
-                            </div>
-                            <div class="mt-4">
-                                <small class="text-muted">Updated {{ now()->format('M d, Y') }}</small>
-                            </div>
-                        </div>
+       <div class="row mb-4">
+    <div class="col-12">
+        <div class="card dashboard-welcome">
+            <div class="card-body">
+                <div class="d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge badge-pill badge-primary mb-3 px-3 py-2"
+                            style="background:#6366f1;color:#fff;">
+                            System Insights
+                        </span>
+
+                        <h2 class="mb-2">Welcome to your workspace</h2>
+
+                        <p class="text-muted mb-0">
+                            Track user growth, task throughput and project health at a glance.
+                        </p>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Updated {{ now()->format('M d, Y') }}
+                        </small>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- <div class="col-lg-5">
-                <div class="card filter-card h-100">
-                    <div class="card-body">
-                        <form method="GET" class="row gx-3 gy-3">
-                            <div class="col-12">
-                                <label class="form-label">Select Project Category</label>
-                                 <select name="category_id" class="form-control" onchange="this.form.submit()">
-                                    <option value="">All Categories</option>
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" {{ $selectedCategory == $category->id ? 'selected' : '' }}>{{ $category->category_name }}</option>
-                                    @endforeach
-                                </select> -->
-                            
-                        <!-- </form>
-                    </div>
-                </div>
-            </div>
-        </div> --> 
-
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 metric-grid">
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 metric-grid">
             <div class="col">
                 <div class="metric-card bg-info">
                     <div class="p-4">
@@ -382,4 +382,130 @@
         </div>
     @endif
 </div>
+
+@if($upcomingTasks->count())
+
+<div class="modal fade" id="taskReminderModal" tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger">
+
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-bell"></i>
+                    Task Reminder
+                </h5>
+
+                <button type="button"
+                        class="close text-white"
+                        data-dismiss="modal">
+
+                    <span>&times;</span>
+
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table table-bordered">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Task</th>
+                            <th>Assigned To</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    @foreach($upcomingTasks as $task)
+
+                        <tr>
+
+                            <td>{{ $task->task_name }}</td>
+
+                            <td>{{ optional($task->assignedUser)->name }}</td>
+
+                            <td>
+
+                                {{ \Carbon\Carbon::parse($task->deadline_date)->format('d M Y') }}
+
+                            </td>
+
+                            <td>
+
+                                @if(\Carbon\Carbon::parse($task->deadline_date)->isPast())
+
+                                    <span class="badge badge-danger">
+                                        Overdue
+                                    </span>
+
+                                @elseif(\Carbon\Carbon::parse($task->deadline_date)->isToday())
+
+                                    <span class="badge badge-warning">
+                                        Due Today
+                                    </span>
+
+                                @else
+
+                                    <span class="badge badge-info">
+                                        Upcoming
+                                    </span>
+
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+                    @endforeach
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-secondary"
+                        data-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endif
+@stop
+
+@section('js')
+
+
+@if($upcomingTasks->count())
+
+<script>
+    $(document).ready(function () {
+        $('#taskReminderModal').modal('show');
+    });
+</script>
+
+@endif
+
 @stop

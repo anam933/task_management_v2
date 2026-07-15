@@ -66,15 +66,9 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-info project-metric">
-                <div class="inner">
-                    <h3>{{ $completedProjects }}</h3>
-                    <p>Completed Projects</p>
-                </div>
-                <div class="icon"><i class="fas fa-check-circle"></i></div>
-            </div>
-        </div>
+
+
+                    
 
         <div class="col-lg-3 col-md-6">
             <div class="small-box bg-warning project-metric">

@@ -19,6 +19,10 @@
     overflow-x:auto;
 }
 
+
+
+
+
 .column{
     min-width:350px;
     flex:1;

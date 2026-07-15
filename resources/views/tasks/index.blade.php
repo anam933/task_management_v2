@@ -112,6 +112,7 @@
                         <th>Status</th>
                         <th>Assigned By</th>
                         <th>Assigned To</th>
+                        <th>reports_to</th> 
                         <th>Timeline</th>
                         @can('view-tasks')
                             <th style="width: 150px;">Actions</th>
@@ -173,24 +174,33 @@
                                     $statusClass = match ($task->status) {
                                         'Completed' => 'badge-success',
                                         'In Progress' => 'badge-info',
+                                        'Submitted' => 'badge-primary',
                                         default => 'badge-secondary',
                                     };
                                 @endphp
                                 <span class="badge {{ $statusClass }} px-3 py-2">{{ $task->status }}</span>
+
+                                @if(\Carbon\Carbon::parse($task->deadline_date)->isPast() && !in_array($task->status, ['Completed', 'Submitted']))
+                                    <span class="badge badge-danger px-2 py-2 mt-1 d-block" style="width: fit-content;"><i class="fas fa-exclamation-triangle"></i> Overdue</span>
+                                @endif
                             </td>
 
                             <td>
-                                <div>{{ optional($task->assignedUser)->name ?? 'Unassigned' }}</div>
-                            </td>
+                                    <div>{{ optional($task->assignedByUser)->name ?? 'System' }}</div>
+                                </td>
 
-                            <td>
-                                <div>{{ optional($task->assignedByUser)->name ?? 'System' }}</div>
-                            </td>
+                                <td>
+                                    <div>{{ optional($task->assignedUser)->name ?? 'Unassigned' }}</div>
+                                </td>
 
-                            <td>
-                                <div><strong>Start:</strong> {{ \Carbon\Carbon::parse($task->start_date)->format('d M Y') }}</div>
-                                <div><strong>Due:</strong> {{ \Carbon\Carbon::parse($task->deadline_date)->format('d M Y') }}</div>
-                            </td>
+                                <td>
+                                    <div>{{ optional($task->reportingManager)->name ?? '-' }}</div>
+                                </td>
+
+                                <td>
+                                    <div><strong>Start:</strong> {{ \Carbon\Carbon::parse($task->start_date)->format('d M Y') }}</div>
+                                    <div><strong>Due:</strong> {{ \Carbon\Carbon::parse($task->deadline_date)->format('d M Y') }}</div>
+                                </td>
 
                             @can('view-tasks')
                                 <td>

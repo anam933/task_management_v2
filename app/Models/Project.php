@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
+
 class Project extends Model
 {
     use SoftDeletes;
@@ -15,7 +16,7 @@ class Project extends Model
         'project_name',
         'project_code',
         'project_description',
-        'category_id',          // ✅ Added
+        'category_id', 
         'start_date',
         'end_date',
         'project_manager_id',
@@ -23,6 +24,8 @@ class Project extends Model
         'priority',
         'budget',
         'created_by',
+        'assigned_to',
+        'reports_to',
     ];
 
     protected $casts = [
@@ -43,6 +46,22 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+
+     public function getProgressAttribute()
+    {
+    $total = $this->tasks()->count();
+
+    if ($total == 0) {
+        return 0;
+    }
+
+    $completed = $this->tasks()
+        ->where('status', 'Completed')
+        ->count();
+
+    return round(($completed / $total) * 100);
+}
+
     public function manager()
     {
         return $this->belongsTo(User::class, 'project_manager_id');
@@ -53,30 +72,54 @@ class Project extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function teamMembers()
-    {
-        return $this->belongsToMany(User::class, 'project_user')->withTimestamps();
-    }
+   public function teamMembers()
+{
+    return $this->belongsToMany(User::class, 'project_user')
+        ->withTimestamps();
+}
+
+public function assignedUser()
+{
+    return $this->belongsTo(User::class, 'assigned_to');
+}
 
     public function activityLogs()
     {
         return $this->hasMany(ProjectActivityLog::class);
     }
 
-    public function scopeVisibleTo($query, User $user)
-    {
-        if ($user->hasRole(['admin', 'manager'])) {
-            return $query;
-        }
+    public function reportingManager()
+{
+    return $this->belongsTo(User::class, 'reports_to');
+}
 
+
+
+
+   public function scopeVisibleTo($query, User $user)
+{
+    // Admin can see everything
+    if ($user->hasRole('admin')) {
+        return $query;
+    }
+
+    // Manager
+    if ($user->hasRole('manager')) {
         return $query->where(function ($builder) use ($user) {
             $builder->where('project_manager_id', $user->id)
-                ->orWhere('created_by', $user->id)
-                ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
-                    $teamQuery->whereKey($user->id);
-                });
+                    ->orWhere('created_by', $user->id);
         });
     }
+    
+
+    // Employee
+    return $query->where(function ($builder) use ($user) {
+        $builder->where('assigned_to', $user->id)
+                ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
+                    $teamQuery->where('users.id', $user->id);
+                });
+    });
+}
     public function scopeCurrentCategory(Builder $query, ?int $categoryId): Builder
 {
     if (!$categoryId) {
@@ -85,4 +128,10 @@ class Project extends Model
 
     return $query->where('category_id', $categoryId);
 }
+
+
+
+
+
+   
 }

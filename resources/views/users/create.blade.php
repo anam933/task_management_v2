@@ -55,6 +55,23 @@
             @endif
         </div>
 
+        <div class="mb-3">
+    <label>Project Category</label>
+
+    <select name="category_id" class="form-control">
+        <option value="">Select Category</option>
+
+        @foreach($categories as $category)
+            <option value="{{ $category->id }}"
+                {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                {{ $category->category_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
+
+
         @if(auth()->user()->hasRole('admin'))
             <div class="mb-3" id="reports-to-group" style="display: none;">
                 <label>Reporting Manager</label>

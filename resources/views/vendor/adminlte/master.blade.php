@@ -8,6 +8,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+     
+
+    
 
     {{-- Custom Meta Tags --}}
     @yield('meta_tags')
@@ -50,7 +53,8 @@
                 <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
                 <link rel="stylesheet" href="{{ asset('vendor/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
                 <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte.min.css') }}">
-
+                <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+               
                 @if(config('adminlte.google_fonts.allowed', true))
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
                 @endif
@@ -61,8 +65,7 @@
     @include('adminlte::plugins', ['type' => 'css'])
 
     {{-- Custom Theme Overrides --}}
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-
+    
     {{-- Livewire Styles --}}
     @if(config('adminlte.livewire'))
         @if(intval(app()->version()) >= 7)

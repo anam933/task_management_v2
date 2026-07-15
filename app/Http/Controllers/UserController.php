@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use App\Models\Task;
 
 class UserController extends Controller
 {
@@ -17,42 +18,166 @@ class UserController extends Controller
         $this->middleware('can:manage-employees')->only(['index', 'create', 'store', 'edit', 'update', 'destroy', 'show']);
     }
 
-    public function index()
-    {
-        $user = auth()->user();
-        $selectedCategory = $this->currentCategoryId();
+   public function index()
+{
+    $user = auth()->user();
 
-        $users = User::with(['creator', 'manager'])
-            ->when(! $user->hasRole('admin'), function ($query) use ($user) {
-                $query->where('category_id', $user->category_id);
-            })
-            ->when($user->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
+    $selectedCategory = $this->currentCategoryId();
+    $selectedUser = request('user_id');
+
+    $users = User::with(['creator', 'manager', 'category'])
+
+        // Admin
+        ->when($user->hasRole('admin'), function ($query) use ($selectedCategory) {
+
+            if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory);
-            })
-            ->latest()
-            ->get();
+            }
 
-        return view('users.index', compact('users'));
+        })
+
+        // Manager
+        ->when($user->hasRole('manager'), function ($query) use ($user) {
+
+            $query->where(function ($q) use ($user) {
+
+                $q->where('id', $user->id)
+                  ->orWhere('reports_to', $user->id);
+
+            });
+
+        })
+
+        // Employee
+        ->when($user->hasRole('employee'), function ($query) use ($user) {
+
+            $query->where('id', $user->id);
+
+        })
+
+        // User Filter
+        ->when($selectedUser, function ($query) use ($selectedUser) {
+
+            $query->where('id', $selectedUser);
+
+        })
+
+        ->latest()
+        ->get();
+
+
+
+    // User Dropdown
+    $allUsers = User::query()
+
+        ->when($user->hasRole('admin'), function ($query) use ($selectedCategory) {
+
+            if ($selectedCategory) {
+                $query->where('category_id', $selectedCategory);
+            }
+
+        })
+
+        ->when($user->hasRole('manager'), function ($query) use ($user) {
+
+            $query->where(function ($q) use ($user) {
+
+                $q->where('id', $user->id)
+                  ->orWhere('reports_to', $user->id);
+
+            });
+
+        })
+
+        ->when($user->hasRole('employee'), function ($query) use ($user) {
+
+            $query->where('id', $user->id);
+
+        })
+
+        ->orderBy('name')
+        ->get(['id', 'name']);
+        $userInfo = null;
+$stats = [];
+
+if ($selectedUser) {
+
+    $userInfo = User::with([
+        'creator',
+        'manager',
+        'category'
+    ])->find($selectedUser);
+
+    if ($userInfo) {
+
+        $stats = [
+
+            'assigned' => Task::where('assigned_to', $selectedUser)->count(),
+
+            'created' => Task::where('assigned_by', $selectedUser)->count(),
+
+            'pending' => Task::where('assigned_to', $selectedUser)
+                ->where('status', 'Pending')
+                ->count(),
+
+            'in_progress' => Task::where('assigned_to', $selectedUser)
+                ->where('status', 'In Progress')
+                ->count(),
+
+            'submitted' => Task::where('assigned_to', $selectedUser)
+                ->where('status', 'Submitted')
+                ->count(),
+
+            'completed' => Task::where('assigned_to', $selectedUser)
+                ->where('status', 'Completed')
+                ->count(),
+
+        ];
+
     }
 
-    public function create()
-    {
-        $user = auth()->user();
-        $selectedCategory = $this->currentCategoryId();
+}
+    return view('users.index', compact(
+        'users',
+        'allUsers',
+        'selectedUser',
+        'userInfo',
+        'stats'
+    ));
+}
 
-        // Fetch managers in the active category to populate reports_to dropdown for Admin
-        $managers = User::where('role', 'manager')
-            ->when(! $user->hasRole('admin'), function ($query) use ($user) {
-                $query->where('category_id', $user->category_id);
-            })
-            ->when($user->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
-                $query->where('category_id', $selectedCategory);
-            })
-            ->orderBy('name')
-            ->get();
+public function create()
+{
+    $user = auth()->user();
+    $selectedCategory = $this->currentCategoryId();
 
-        return view('users.create', compact('managers'));
-    }
+    // Admin → Show all managers in the selected category
+    // Manager / Employee → Only show managers from their own category
+    $managers = User::where('role', 'manager')
+
+        ->when($user->hasRole('admin') && $selectedCategory, function ($query) use ($selectedCategory) {
+
+            $query->where('category_id', $selectedCategory);
+
+        })
+
+        ->when($user->hasRole('manager') || $user->hasRole('employee'), function ($query) use ($user) {
+
+            $query->where('category_id', $user->category_id);
+
+        })
+
+        ->orderBy('name')
+        ->get();
+
+
+   $categories = ProjectCategory::orderBy('category_name')->get();
+
+return view('users.create', compact(
+    'managers',
+    'categories'
+));
+}
 
     public function store(Request $request)
     {
@@ -74,6 +199,7 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'role' => $roleRule,
             'phone' => 'nullable|string|max:20',
+           
         ];
 
         // If Admin creates Employee, they must choose a Manager from the current category
@@ -87,6 +213,7 @@ class UserController extends Controller
         }
 
         $request->validate($rules);
+      
 
         $reportsTo = null;
         if ($role === 'manager') {
@@ -110,6 +237,7 @@ class UserController extends Controller
             'reports_to' => $reportsTo,
             'password' => Hash::make($request->password),
             'category_id' => $role === 'admin' ? null : $categoryId,
+            
         ];
 
         User::create($createPayload);
@@ -134,7 +262,14 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('users.edit', compact('user', 'managers'));
+
+       $categories = ProjectCategory::orderBy('category_name')->get();
+
+return view('users.edit', compact(
+    'user',
+    'managers',
+    'categories'
+));
     }
 
     public function show(User $user)
@@ -164,6 +299,8 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => $roleRule,
             'phone' => 'nullable|string|max:20',
+            
+            
         ];
 
         if ($currentUser->hasRole('admin') && $role === 'employee') {
@@ -201,6 +338,7 @@ class UserController extends Controller
             'role' => $role,
             'reports_to' => $reportsTo,
             'category_id' => $role === 'admin' ? null : $categoryId,
+            
         ];
 
         $user->update($updatePayload);

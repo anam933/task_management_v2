@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\DailyStandupReport;
 use App\Models\MeetingMinute;
@@ -11,6 +12,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Department;
 
 class User extends Authenticatable
 {
@@ -156,6 +158,7 @@ class User extends Authenticatable
         if ($permission === 'view-tasks' && $context instanceof Task) {
             return $this->hasRole(['admin', 'manager'])
                 || (int) $context->assigned_to === (int) $this->id
+                || (int) $context->reports_to === (int) $this->id
                 || $context->project?->teamMembers()->whereKey($this->id)->exists()
                 || (int) $context->project?->project_manager_id === (int) $this->id
                 || (int) $context->project?->created_by === (int) $this->id;
@@ -181,4 +184,9 @@ class User extends Authenticatable
     {
         return strtolower(trim((string) $role)) ?: 'employee';
     }
+
+    public function department()
+        {
+            return $this->belongsTo(Department::class);
+        }
 }

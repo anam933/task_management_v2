@@ -1,6 +1,7 @@
 @extends('adminlte::page')
 
 @section('title', 'Edit Task')
+@section('plugins.Select2', true)
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -78,7 +79,11 @@
                 <div class="col-lg-4">
                     <div class="form-group">
                         <label>Tags</label>
-                        <select name="tag_ids[]" class="form-control form-control-lg" multiple size="5">
+                       <select name="tag_ids[]"
+        class="form-control select2"
+        multiple
+        data-placeholder="Select Tags"
+        style="width:100%;">
                             @foreach($tags as $tag)
                                 <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tag_ids', $selectedTagIds ?? [])) ? 'selected' : '' }}>
                                     {{ $tag->name }}
@@ -92,14 +97,24 @@
                 <div class="col-lg-4">
                     <div class="form-group">
                         <label>Project <span class="text-danger">*</span></label>
-                        <select name="project_id" class="form-control form-control-lg" required>
-                            <option value="">Select Project</option>
-                            @foreach($projects as $projectOption)
-                                <option value="{{ $projectOption->id }}" {{ old('project_id', $task->project_id) == $projectOption->id ? 'selected' : '' }}>
-                                    {{ $projectOption->project_name }} ({{ $projectOption->project_code }})
-                                </option>
-                            @endforeach
-                        </select>
+                      
+       <select name="project_id"
+        id="project_id"
+        class="form-control form-control-lg"
+        required>
+
+    @foreach($projects as $projectOption)
+
+        <option value="{{ $projectOption->id }}"
+            {{ old('project_id', $task->project_id) == $projectOption->id ? 'selected' : '' }}>
+
+            {{ $projectOption->project_name }} ({{ $projectOption->project_code }})
+
+        </option>
+
+    @endforeach
+
+</select>
                     </div>
                 </div>
 
@@ -127,21 +142,48 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <div class="form-group">
                         <label>Assign To</label>
-                        <select name="assigned_to" class="form-control form-control-lg">
-                            <option value="">Unassigned</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('assigned_to', $task->assigned_to) == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <select name="assigned_to"
+        id="assigned_to"
+        class="form-control form-control-lg">
+
+    <option value="">Select Employee</option>
+
+    @foreach($users as $user)
+
+        <option value="{{ $user->id }}"
+            {{ old('assigned_to', $task->assigned_to) == $user->id ? 'selected' : '' }}>
+            {{ $user->name }}
+        </option>
+
+    @endforeach
+
+</select>
                     </div>
                 </div>
 
-                <div class="col-lg-6">
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Reports To <span class="text-danger">*</span></label>
+                        @if(auth()->user()->hasRole('admin'))
+                            <select name="reports_to" class="form-control form-control-lg" required>
+                                <option value="">Select Reporting Manager</option>
+                                @foreach($reportingManagers as $manager)
+                                    <option value="{{ $manager->id }}" {{ old('reports_to', $task->reports_to) == $manager->id ? 'selected' : '' }}>
+                                        {{ $manager->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="hidden" name="reports_to" value="{{ $task->reports_to ?? auth()->user()->id }}">
+                            <input type="text" class="form-control form-control-lg" value="{{ $task->reportingManager->name ?? auth()->user()->name }}" disabled>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
                     <div class="form-group">
                         <label>Status <span class="text-danger">*</span></label>
                         <select name="status" class="form-control form-control-lg">
@@ -173,3 +215,59 @@
 </div>
 
 @stop
+
+@section('js')
+<script>
+$(document).ready(function () {
+
+    console.log("Edit JS Loaded");
+
+    $('#project_id').change(function () {
+
+        console.log("Project Changed");
+
+        let projectId = $(this).val();
+
+        console.log(projectId);
+
+        $('#assigned_to').html('<option value="">Loading...</option>');
+
+        $.get('/projects/' + projectId + '/members', function(users){
+
+            console.log(users);
+
+            let options = '<option value="">Select Employee</option>';
+
+            users.forEach(function(user){
+
+                options += `
+                    <option value="${user.id}">
+                        ${user.name}
+                    </option>
+                `;
+
+            });
+
+            $('#assigned_to').html(options);
+
+        });
+
+    });
+
+});
+</script>
+
+
+<script>
+$(document).ready(function(){
+
+    $('.select2').select2({
+        placeholder:'Select Tags',
+        allowClear:true,
+        width:'100%'
+    });
+
+});
+</script>
+
+@endsection

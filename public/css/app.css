@@ -52,8 +52,8 @@ body {
     box-shadow: 0 0 28px rgba(15, 23, 42, 0.08);
 }
 
-.main-sidebar .sidebar {
-    background: transparent !important;
+.sidebar-dark .main-sidebar {
+    background: #ffffff !important;
 }
 
 .main-sidebar .nav-sidebar .nav-link {
@@ -96,9 +96,7 @@ body {
     border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
-.content-wrapper {
-    background: linear-gradient(180deg, #f8fbff 0%, #eef3fb 45%, #f1f5f9 100%);
-}
+
 
 .content {
     padding-left: 1.8rem;
@@ -107,9 +105,7 @@ body {
     padding-bottom: 1.5rem;
 }
 
-.content-header .container-fluid {
-    margin-bottom: 1rem;
-}
+
 
 .card,
 .login-card-body,
@@ -286,9 +282,18 @@ textarea::placeholder {
     color: rgba(15, 23, 42, 0.4) !important;
 }
 
+
+
+
+
+
 /* Modern UI enhancements */
-* {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+.card,
+.btn,
+.nav-link,
+.form-control,
+.dropdown-menu {
+    transition: all .2s ease;
 }
 
 .main-header,

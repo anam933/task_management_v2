@@ -37,7 +37,13 @@
                     </div>
                 @endif
 
-                @include('projects.partials.form', ['users' => $users, 'project' => $project])
+               <div class="p-3">
+                    @include('projects.partials.form', [
+                        'project' => $project,
+                        'managers' => $managers,
+                        'employees' => $employees,
+                    ])
+                </div>
             </div>
 
             <div class="card-footer d-flex justify-content-between align-items-center">

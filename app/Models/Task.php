@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\TaskChecklist;
 
 class Task extends Model
 {
@@ -19,6 +20,8 @@ class Task extends Model
         'status',
         'task_category_id',
         'project_id',
+        'reports_to',
+        'submission_remarks',
     ];
 
     public function tags()
@@ -50,9 +53,24 @@ class Task extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
+    public function reportingManager()
+        {
+            return $this->belongsTo(User::class, 'reports_to');
+        }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function checklists()
+{
+    return $this->hasMany(TaskChecklist::class);
+}
+
+    public function attachments()
+    {
+        return $this->hasMany(TaskAttachment::class);
     }
 
     public function legacyCategory()
@@ -61,22 +79,28 @@ class Task extends Model
     }
 
     public function scopeVisibleTo($query, User $user)
-    {
-        if ($user->hasRole(['admin', 'manager'])) {
-            return $query;
-        }
+{
+    // Admin -> Everything
+    if ($user->hasRole('admin')) {
+        return $query;
+    }
 
+    // Manager -> Own tasks + Team tasks
+    if ($user->hasRole('manager')) {
         return $query->where(function ($builder) use ($user) {
+
             $builder->where('assigned_to', $user->id)
-                ->orWhereHas('project', function ($projectQuery) use ($user) {
-                    $projectQuery->where('project_manager_id', $user->id)
-                        ->orWhere('created_by', $user->id)
-                        ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
-                            $teamQuery->whereKey($user->id);
-                        });
+
+                ->orWhereHas('assignedUser', function ($employeeQuery) use ($user) {
+                    $employeeQuery->where('reports_to', $user->id);
                 });
+
         });
     }
+
+    // Employee -> Only own assigned tasks
+    return $query->where('assigned_to', $user->id);
+}
 
     public function scopeCurrentCategory($query, ?int $categoryId)
     {

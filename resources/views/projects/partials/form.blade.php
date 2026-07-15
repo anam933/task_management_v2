@@ -45,15 +45,65 @@
         <div class="form-group">
             <label>Project Manager <span class="text-danger">*</span></label>
             <select name="project_manager_id" class="form-control form-control-lg" required>
-                <option value="">Select Manager</option>
-                @foreach($users as $user)
-                    <option value="{{ $user->id }}" {{ old('project_manager_id', $project->project_manager_id ?? '') == $user->id ? 'selected' : '' }}>
-                        {{ $user->name }}
-                    </option>
-                @endforeach
+               @foreach($managers as $manager)
+
+<option value="{{ $manager->id }}"
+    {{ old('project_manager_id', $project->project_manager_id ?? '') == $manager->id ? 'selected' : '' }}>
+    {{ $manager->name }}
+</option>
+
+@endforeach
             </select>
         </div>
     </div>
+
+
+
+<div class="col-lg-4">
+    <div class="form-group">
+        <label>Reports To</label>
+
+        <select name="reports_to" class="form-control form-control-lg">
+            <option value="">Select Reporting Manager</option>
+
+            @foreach($reportingManagers as $manager)
+                <option value="{{ $manager->id }}"
+                    {{ old('reports_to', $project->reports_to ?? '') == $manager->id ? 'selected' : '' }}>
+                    {{ $manager->name }}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+</div>
+
+
+
+
+    <div class="col-lg-4">
+    <div class="form-group">
+        <label>Assigned To</label>
+
+        <select name="assigned_to" class="form-control form-control-lg">
+            <option value="">Select Employee</option>
+
+            @foreach($employees as $employee)
+                <option value="{{ $employee->id }}"
+                    {{ old('assigned_to', $project->assigned_to ?? '') == $employee->id ? 'selected' : '' }}>
+                    {{ $employee->name }}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+</div>
+
+
+
+
+
+
+
 
     <div class="col-lg-4">
         <div class="form-group">
@@ -62,8 +112,7 @@
                 <option value="Planning" {{ old('project_status', $project->project_status ?? 'Planning') === 'Planning' ? 'selected' : '' }}>Planning</option>
                 <option value="Active" {{ old('project_status', $project->project_status ?? '') === 'Active' ? 'selected' : '' }}>Active</option>
                 <option value="On Hold" {{ old('project_status', $project->project_status ?? '') === 'On Hold' ? 'selected' : '' }}>On Hold</option>
-                <option value="Completed" {{ old('project_status', $project->project_status ?? '') === 'Completed' ? 'selected' : '' }}>Completed</option>
-                <option value="Cancelled" {{ old('project_status', $project->project_status ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                
             </select>
         </div>
     </div>
@@ -118,15 +167,27 @@
 
 <div class="form-group">
     <label>Team Members</label>
+
     <select name="team_members[]"
             class="form-control"
             multiple
             size="6">
-        @foreach($users as $user)
-            <option value="{{ $user->id }}" {{ in_array((int) $user->id, $selectedTeamMembers, true) ? 'selected' : '' }}>
-                {{ $user->name }} @if($user->role) ({{ $user->role }}) @endif
+
+        @foreach($employees as $employee)
+            <option value="{{ $employee->id }}"
+                {{ in_array((int)$employee->id, $selectedTeamMembers, true) ? 'selected' : '' }}>
+
+                {{ $employee->name }}
+                @if($employee->role)
+                    ({{ ucfirst($employee->role) }})
+                @endif
+
             </option>
         @endforeach
+
     </select>
-    <small class="text-muted">Hold Ctrl/Command to select multiple users.</small>
+
+    <small class="text-muted">
+        Hold Ctrl/Command to select multiple users.
+    </small>
 </div>

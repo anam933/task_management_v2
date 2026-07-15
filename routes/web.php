@@ -15,6 +15,7 @@ use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectCategoryController;
 use App\Http\Controllers\MeetingMinuteController;
+use App\Http\Controllers\TaskChecklistController;
 
 Route::get('/', [DashboardController::class, 'index']);
 Route::resource('users', UserController::class);
@@ -24,6 +25,12 @@ Route::resource('projects', ProjectController::class);
 Route::resource('tags', TagController::class);
 Route::resource('standup-reports', DailyStandupReportController::class);
 Route::resource('meeting-minutes', MeetingMinuteController::class);
+
+Route::get('/manager-dashboard', [App\Http\Controllers\ManagerDashboardController::class, 'index'])->name('manager.dashboard');
+Route::post('/manager/tasks/{task}/approve', [App\Http\Controllers\ManagerDashboardController::class, 'approve'])->name('manager.tasks.approve');
+Route::post('/manager/tasks/{task}/reject', [App\Http\Controllers\ManagerDashboardController::class, 'reject'])->name('manager.tasks.reject');
+Route::post('/manager/tasks/{task}/reassign', [App\Http\Controllers\ManagerDashboardController::class, 'reassign'])->name('manager.tasks.reassign');
+Route::post('/tasks/{task}/submit', [App\Http\Controllers\TaskController::class, 'submitTask'])->name('tasks.submit');
 
 
 
@@ -74,7 +81,7 @@ Route::get('category/select', function (Request $request) {
     $user = $request->user();
     $categoryId = $request->query('category_id');
 
-    if ($user?->hasRole('admin')) {
+   if ($user) {
         if ($categoryId !== null && $categoryId !== '' && ctype_digit((string) $categoryId)) {
             $request->session()->put('current_category_id', (int) $categoryId);
         } else {
@@ -85,6 +92,28 @@ Route::get('category/select', function (Request $request) {
     return redirect()->to(url()->previous() ?: route('dashboard'));
 })->name('category.select')->middleware('auth');
 
+Route::patch('/task-checklists/{checklist}/toggle', [TaskChecklistController::class, 'toggle'])
+    ->name('task-checklists.toggle');
 
 
-   
+
+Route::get('/projects/{project}/members', 
+    [TaskController::class, 'projectMembers']
+)->name('projects.members');
+
+Route::post('/tasks/{task}/submit', [TaskController::class, 'submitTask'])
+    ->name('tasks.submit');
+
+Route::post('/tasks/{task}/approve', [TaskController::class, 'approveTask'])
+    ->name('manager.tasks.approve');
+
+Route::post('/tasks/{task}/reject', [TaskController::class, 'rejectTask'])
+    ->name('manager.tasks.reject');
+
+Route::post('/tasks/{task}/reassign', [TaskController::class, 'reassignTask'])
+    ->name('manager.tasks.reassign');
+
+Route::post('/tasks/{task}/start', [TaskController::class, 'startTask'])
+    ->name('tasks.start');
+
+    

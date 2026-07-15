@@ -35,8 +35,13 @@
                     </div>
                 @endif
 
-                @include('projects.partials.form', ['users' => $users, 'project' => null])
-            </div>
+                            <div class="p-3">
+                    @include('projects.partials.form', [
+                        'managers' => $managers,
+                        'employees' => $employees,
+                        'project' => null,
+                    ])
+                </div>
 
             <div class="card-footer d-flex justify-content-between align-items-center">
                 <span class="text-muted">Projects are the top-level delivery unit in the system.</span>

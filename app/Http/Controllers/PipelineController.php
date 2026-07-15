@@ -19,7 +19,7 @@ class PipelineController extends Controller
     {
         $selectedCategory = $this->currentCategoryId();
 
-        $tasks = Task::with(['assignedUser', 'assignedByUser', 'project', 'tags'])
+        $tasks = Task::with(['assignedUser', 'assignedByUser', 'project', 'tags', 'checklists'])
             ->visibleTo(Auth::user())
             ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->get();
@@ -32,10 +32,16 @@ class PipelineController extends Controller
         Gate::authorize('update-task-status', $task);
 
         $request->validate([
-            'status' => 'required|in:Pending,In Progress,Completed',
+            'status' => 'required|in:Pending,In Progress,Submitted,Completed',
         ]);
 
-        $task->status = $request->status;
+        $status = $request->status;
+
+        if ($status === 'Completed' && $task->reports_to && !Auth::user()->hasRole('admin') && Auth::id() !== (int) $task->reports_to) {
+            $status = 'Submitted';
+        }
+
+        $task->status = $status;
         $task->save();
 
         return response()->json(['success' => true]);
@@ -43,7 +49,7 @@ class PipelineController extends Controller
 
     public function taskDetails($id)
     {
-        $task = Task::with(['project.teamMembers', 'assignedUser', 'assignedByUser', 'tags'])->findOrFail($id);
+        $task = Task::with(['project.teamMembers', 'assignedUser', 'assignedByUser', 'tags', 'attachments'])->findOrFail($id);
         Gate::authorize('view-tasks', $task);
 
         return view('task_details', compact('task'));

@@ -2,6 +2,9 @@
 
 @section('title', 'Add Task')
 
+
+@section('plugins.Select2', true)
+
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
@@ -75,25 +78,40 @@
                         <small class="text-muted">Every task should have one category.</small>
                     </div>
                 </div>
+<div class="col-lg-4">
+    <div class="form-group">
+        <label>Tags</label>
 
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label>Tags</label>
-                        <select name="tag_ids[]" class="form-control form-control-lg" multiple size="5">
-                            @foreach($tags as $tag)
-                                <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tag_ids', $selectedTagIds ?? [])) ? 'selected' : '' }}>
-                                    {{ $tag->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Hold Ctrl or Cmd to pick multiple tags.</small>
-                    </div>
-                </div>
+        <select
+            name="tag_ids[]"
+            class="form-control select2"
+            multiple
+            data-placeholder="Select Tags"
+            style="width:100%;">
+
+            @foreach($tags as $tag)
+                <option value="{{ $tag->id }}"
+                    {{ in_array($tag->id, old('tag_ids', $selectedTagIds ?? [])) ? 'selected' : '' }}>
+                    {{ $tag->name }}
+                </option>
+            @endforeach
+
+        </select>
+
+        <small class="text-muted">
+            You can select multiple tags.
+        </small>
+    </div>
+</div>
 
                 <div class="col-lg-4">
                     <div class="form-group">
                         <label>Project <span class="text-danger">*</span></label>
-                        <select name="project_id" class="form-control form-control-lg" required>
+                        <select
+                            name="project_id"
+                            id="project_id"
+                            class="form-control form-control-lg"
+                            required>
                             <option value="">Select Project</option>
                             @foreach($projects as $project)
                                 <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
@@ -132,26 +150,45 @@
                 <div class="col-lg-6">
                     <div class="form-group">
                         <label>Assign To</label>
-                        <select name="assigned_to" class="form-control form-control-lg">
-                            <option value="">Unassigned</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('assigned_to') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <select name="assigned_to"
+                                    id="assigned_to"
+                                    class="form-control form-control-lg">
+
+                                <option value="">Select Employee</option>
+
+    </select>
+                    </div>
+                </div>
+                 
+
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Reports To <span class="text-danger">*</span></label>
+                        @if(auth()->user()->hasRole('admin'))
+                            <select name="reports_to" class="form-control form-control-lg" required>
+                                <option value="">Select Reporting Manager</option>
+                                @foreach($reportingManagers as $manager)
+                                    <option value="{{ $manager->id }}" {{ old('reports_to') == $manager->id ? 'selected' : '' }}>
+                                        {{ $manager->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="hidden" name="reports_to" value="{{ auth()->user()->id }}">
+                            <input type="text" class="form-control form-control-lg" value="{{ auth()->user()->name }}" disabled>
+                        @endif
                     </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <div class="form-group">
-                        <label>Status <span class="text-danger">*</span></label>
-                        <select name="status" class="form-control form-control-lg">
-                            <option value="Pending" {{ old('status', 'Pending') === 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="In Progress" {{ old('status') === 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                            <option value="Completed" {{ old('status') === 'Completed' ? 'selected' : '' }}>Completed</option>
-                        </select>
-                    </div>
+
+
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <label>Status</label>
+
+                    <select name="status" class="form-control form-control-lg">
+                        <option value="Pending" selected>Pending</option>
+                    </select>
                 </div>
             </div>
 
@@ -164,6 +201,66 @@
             </div>
         </div>
 
+
+
+        <hr>
+
+<div class="form-group">
+    <label>Task Checklist</label>
+
+    <div id="checklist-container">
+
+        <div class="input-group mb-2">
+            <input type="text"
+                   name="checklist_items[]"
+                   class="form-control"
+                   placeholder="Enter checklist item">
+
+            <div class="input-group-append">
+                <button type="button" class="btn btn-danger remove-item">
+                    Remove
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button"
+            class="btn btn-sm btn-primary mt-2"
+            id="add-checklist">
+        + Add Checklist Item
+    </button>
+
+    <script>
+        $(document).ready(function () {
+
+            // Add new checklist item row
+            $('#add-checklist').click(function () {
+                $('#checklist-container').append(`
+                    <div class="input-group mb-2">
+                        <input type="text"
+                               name="checklist_items[]"
+                               class="form-control"
+                               placeholder="Enter checklist item">
+
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-danger remove-item">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+
+            // Remove checklist item row
+            $(document).on('click', '.remove-item', function () {
+                $(this).closest('.input-group').remove();
+            });
+
+        });
+    </script>
+</div>
+
         <div class="card-footer d-flex justify-content-between align-items-center">
             <span class="text-muted">Tip: Use a clear title and a specific category.</span>
             <div>
@@ -175,3 +272,92 @@
 </div>
 
 @stop
+
+@section('js')
+<script>
+$(document).ready(function () {
+
+    $('.select2').select2({
+        placeholder: 'Select Tags',
+        allowClear: true,
+        width: '100%'
+    });
+
+
+    // Project change => Load project members
+    $('#project_id').change(function () {
+
+        let projectId = $(this).val();
+
+        $('#assigned_to').html('<option value="">Loading...</option>');
+
+
+        if(projectId == ''){
+
+            $('#assigned_to').html('<option value="">Select Employee</option>');
+            return;
+        }
+
+
+        $.get('/projects/' + projectId + '/members', function(users){
+
+            let options = '<option value="">Select Employee</option>';
+
+            users.forEach(function(user){
+
+                options += `
+                    <option value="${user.id}">
+                        ${user.name}
+                    </option>
+                `;
+
+            });
+
+            $('#assigned_to').html(options);
+
+        });
+
+    });
+
+
+
+    // Add checklist item
+    $('#add-checklist').click(function () {
+
+        $('#checklist-container').append(`
+
+            <div class="input-group mb-2">
+
+                <input type="text"
+                       name="checklist_items[]"
+                       class="form-control"
+                       placeholder="Enter checklist item">
+
+                <div class="input-group-append">
+
+                    <button type="button"
+                            class="btn btn-danger remove-item">
+                        Remove
+                    </button>
+
+                </div>
+
+            </div>
+
+        `);
+
+    });
+
+
+
+    // Remove checklist item
+    $(document).on('click', '.remove-item', function () {
+
+        $(this).closest('.input-group').remove();
+
+    });
+
+
+});
+</script>
+@endsection

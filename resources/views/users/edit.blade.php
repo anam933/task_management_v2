@@ -76,10 +76,24 @@
             </div>
         @endif
 
-        <div class="mb-3">
-            <label>Category (Department)</label>
-            <div class="form-control bg-light">{{ $user->category?->category_name ?? 'N/A' }}</div>
-        </div>
+       <div class="mb-3">
+    <label>Project Category</label>
+
+    <select name="category_id" class="form-control">
+
+        @foreach($categories as $category)
+
+            <option value="{{ $category->id }}"
+                {{ old('category_id',$user->category_id)==$category->id?'selected':'' }}>
+
+                {{ $category->category_name }}
+
+            </option>
+
+        @endforeach
+
+    </select>
+</div>
 
         <button type="submit" class="btn btn-primary">
             Update User
