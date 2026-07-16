@@ -294,8 +294,31 @@
                         <div class="metric-icon"><i class="fas fa-pause-circle"></i></div>
                     </div>
                 </div>
-            </div>
         </div>
+
+        @if(auth()->user()->hasRole('admin'))
+            <div class="dashboard-section-title">Meeting Minutes Overview</div>
+            <div class="row row-cols-1 row-cols-md-2 metric-grid">
+                <div class="col">
+                    <div class="metric-card bg-primary">
+                        <div class="p-4">
+                            <div class="metric-label">Total Meetings</div>
+                            <h3>{{ $totalMeetings }}</h3>
+                            <div class="metric-icon"><i class="fas fa-handshake"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="metric-card bg-success">
+                        <div class="p-4">
+                            <div class="metric-label">Upcoming Meetings</div>
+                            <h3>{{ $upcomingMeetings }}</h3>
+                            <div class="metric-icon"><i class="fas fa-calendar-day"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="card dashboard-card mt-4">
             <div class="card-header">

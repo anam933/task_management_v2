@@ -168,8 +168,40 @@ class User extends Authenticatable
             return $this->hasRole(['admin', 'manager']) || (int) $context->user_id === (int) $this->id;
         }
 
-        if (in_array($permission, ['view-meeting-minutes', 'manage-meeting-minutes'], true) && $context instanceof MeetingMinute) {
-            return $this->hasRole(['admin', 'manager']) || (int) $context->user_id === (int) $this->id;
+        if ($permission === 'view-meeting-minutes') {
+            if ($this->hasRole('admin')) {
+                return true;
+            }
+            if (!$context instanceof MeetingMinute) {
+                return true;
+            }
+            if ($this->hasRole('manager')) {
+                return (int) $context->created_by === (int) $this->id
+                    || ($context->project && ((int) $context->project->project_manager_id === (int) $this->id || (int) $context->project->created_by === (int) $this->id));
+            }
+            if ($this->hasRole('employee')) {
+                if (!in_array($context->status, ['Published', 'Completed'])) {
+                    return false;
+                }
+                return $context->project && (
+                    (int) $context->project->assigned_to === (int) $this->id
+                    || $context->project->teamMembers()->whereKey($this->id)->exists()
+                );
+            }
+            return false;
+        }
+
+        if ($permission === 'manage-meeting-minutes') {
+            if ($this->hasRole('admin')) {
+                return true;
+            }
+            if ($this->hasRole('manager')) {
+                if ($context instanceof MeetingMinute) {
+                    return (int) $context->created_by === (int) $this->id;
+                }
+                return true;
+            }
+            return false;
         }
 
         return true;

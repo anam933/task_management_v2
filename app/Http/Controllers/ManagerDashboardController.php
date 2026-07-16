@@ -36,13 +36,30 @@ class ManagerDashboardController extends Controller
         $submittedTasks = $allTasks->where('status', 'Submitted')->count();
         $completedTasks = $allTasks->where('status', 'Completed')->count();
 
+        $createdMomCount = \App\Models\MeetingMinute::where('created_by', $user->id)->count();
+
+        $pendingActionItemsCount = \App\Models\MeetingAction::whereIn('status', ['Pending', 'In Progress'])
+            ->where(function ($query) use ($user) {
+                $query->whereHas('meetingMinute', function ($q) use ($user) {
+                    $q->where('created_by', $user->id)
+                      ->orWhereHas('project', function ($projQ) use ($user) {
+                          $projQ->where('project_manager_id', $user->id)
+                                ->orWhere('created_by', $user->id);
+                      });
+                })->orWhereHas('assignee', function ($q) use ($user) {
+                    $q->where('reports_to', $user->id);
+                });
+            })->count();
+
         return view('manager_dashboard.index', compact(
             'tasks',
             'totalTasks',
             'pendingTasks',
             'inProgressTasks',
             'submittedTasks',
-            'completedTasks'
+            'completedTasks',
+            'createdMomCount',
+            'pendingActionItemsCount'
         ));
     }
 

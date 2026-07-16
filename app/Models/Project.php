@@ -132,6 +132,25 @@ public function assignedUser()
 
 
 
+    public function meetingUsers()
+{
+            $users = collect();
 
-   
+            if ($this->manager) {
+                $users->push($this->manager);
+            }
+
+            if ($this->assignedUser) {
+                $users->push($this->assignedUser);
+            }
+
+            if ($this->reportingManager) {
+                $users->push($this->reportingManager);
+            }
+
+            $users = $users->merge($this->teamMembers);
+
+            return $users->unique('id')->values();
+}
+
 }

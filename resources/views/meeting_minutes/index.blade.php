@@ -5,71 +5,82 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
-            <h1 class="mb-1">Meeting Minutes</h1>
-            <p class="text-muted mb-0">Track meeting discussions, decisions, and action items in one place.</p>
+            <h1 class="mb-1 text-dark font-weight-bold">Meeting Minutes</h1>
+            <p class="text-muted mb-0">Track and manage discussions, decisions, attendees, and action items in one place.</p>
         </div>
         @can('manage-meeting-minutes')
-            <a href="{{ route('meeting-minutes.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus mr-1"></i> Add Meeting Notes
+            <a href="{{ route('meeting-minutes.create') }}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus mr-1"></i> New Meeting Minutes
             </a>
         @endcan
     </div>
 @stop
 
 @section('content')
+<div class="container-fluid">
     @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+            <button type="button" class="close text-white" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     @endif
 
+    <!-- Stat Boxes -->
     <div class="row">
         <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>{{ $totalMeetings }}</h3>
-                    <p>Total Meetings</p>
+            <div class="small-box bg-white border shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="font-weight-bold text-primary">{{ $totalMeetings }}</h3>
+                    <p class="text-muted text-uppercase mb-0 small font-weight-bold">Total Meetings</p>
                 </div>
-                <div class="icon"><i class="fas fa-handshake"></i></div>
+                <div class="icon text-primary opacity-25 p-3"><i class="fas fa-handshake fa-2x"></i></div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $todayMeetings }}</h3>
-                    <p>Today</p>
+            <div class="small-box bg-white border shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="font-weight-bold text-success">{{ $todayMeetings }}</h3>
+                    <p class="text-muted text-uppercase mb-0 small font-weight-bold">Today's Meetings</p>
                 </div>
-                <div class="icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="icon text-success opacity-25 p-3"><i class="fas fa-calendar-day fa-2x"></i></div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $decisionMeetings }}</h3>
-                    <p>Decisions Logged</p>
+            <div class="small-box bg-white border shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="font-weight-bold text-warning">{{ $decisionMeetings }}</h3>
+                    <p class="text-muted text-uppercase mb-0 small font-weight-bold">Decisions Logged</p>
                 </div>
-                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="icon text-warning opacity-25 p-3"><i class="fas fa-gavel fa-2x"></i></div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $weekMeetings }}</h3>
-                    <p>This Week</p>
+            <div class="small-box bg-white border shadow-sm rounded-lg overflow-hidden">
+                <div class="inner p-3">
+                    <h3 class="font-weight-bold text-info">{{ $weekMeetings }}</h3>
+                    <p class="text-muted text-uppercase mb-0 small font-weight-bold">This Week</p>
                 </div>
-                <div class="icon"><i class="fas fa-calendar-week"></i></div>
+                <div class="icon text-info opacity-25 p-3"><i class="fas fa-calendar-week fa-2x"></i></div>
             </div>
         </div>
     </div>
 
-    <div class="card card-outline card-primary shadow-sm mb-3">
+    <!-- Filters -->
+    <div class="card card-outline card-primary shadow-sm mb-4 border-0 rounded-lg">
+        <div class="card-header bg-light">
+            <h3 class="card-title text-dark font-weight-bold mb-0"><i class="fas fa-filter mr-1"></i> Search & Filters</h3>
+        </div>
         <div class="card-body">
-            <form method="GET" class="row align-items-end">
-                <div class="col-lg-3 mb-2">
-                    <label class="mb-1">Meeting Date</label>
-                    <input type="date" name="meeting_date" class="form-control" value="{{ $filters['meeting_date'] ?? '' }}">
+            <form method="GET" action="{{ route('meeting-minutes.index') }}" class="row align-items-end">
+                <div class="col-lg-3 col-md-6 mb-2">
+                    <label class="mb-1 font-weight-bold text-muted small">Search Title</label>
+                    <input type="text" name="search" class="form-control form-control-sm shadow-sm" placeholder="Search by title..." value="{{ $filters['search'] ?? '' }}">
                 </div>
-                <div class="col-lg-3 mb-2">
-                    <label class="mb-1">Project</label>
-                    <select name="project_id" class="form-control">
+                <div class="col-lg-3 col-md-6 mb-2">
+                    <label class="mb-1 font-weight-bold text-muted small">Project</label>
+                    <select name="project_id" class="form-control form-control-sm shadow-sm">
                         <option value="">All Projects</option>
                         @foreach($projects as $project)
                             <option value="{{ $project->id }}" {{ ($filters['project_id'] ?? '') == $project->id ? 'selected' : '' }}>
@@ -78,64 +89,93 @@
                         @endforeach
                     </select>
                 </div>
-                @if(auth()->user()->hasRole(['admin', 'manager']))
-                <div class="col-lg-3 mb-2">
-                    <label class="mb-1">Employee</label>
-                    <select name="user_id" class="form-control">
-                        <option value="">All Employees</option>
-                        @foreach($employees as $employee)
-                            <option value="{{ $employee->id }}" {{ ($filters['user_id'] ?? '') == $employee->id ? 'selected' : '' }}>
-                                {{ $employee->name }}
-                            </option>
-                        @endforeach
+                <div class="col-lg-2 col-md-4 mb-2">
+                    <label class="mb-1 font-weight-bold text-muted small">Status</label>
+                    <select name="status" class="form-control form-control-sm shadow-sm">
+                        <option value="">All Statuses</option>
+                        <option value="Draft" {{ ($filters['status'] ?? '') == 'Draft' ? 'selected' : '' }}>Draft</option>
+                        <option value="Published" {{ ($filters['status'] ?? '') == 'Published' ? 'selected' : '' }}>Published</option>
+                        <option value="Completed" {{ ($filters['status'] ?? '') == 'Completed' ? 'selected' : '' }}>Completed</option>
                     </select>
                 </div>
-                @endif
-                <div class="col-lg-3 mb-2 d-flex">
-                    <button type="submit" class="btn btn-primary mr-2 w-100">Filter</button>
-                    <a href="{{ route('meeting-minutes.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
+                <div class="col-lg-2 col-md-4 mb-2">
+                    <label class="mb-1 font-weight-bold text-muted small">Meeting Date</label>
+                    <input type="date" name="meeting_date" class="form-control form-control-sm shadow-sm" value="{{ $filters['meeting_date'] ?? '' }}">
+                </div>
+                <div class="col-lg-2 col-md-4 mb-2 d-flex">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2 w-100 shadow-sm">Filter</button>
+                    <a href="{{ route('meeting-minutes.index') }}" class="btn btn-outline-secondary btn-sm w-100 shadow-sm">Reset</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="card card-outline card-primary shadow-sm">
+    <!-- Meeting Minutes Table -->
+    <div class="card card-outline card-primary shadow-sm border-0 rounded-lg">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover table-striped mb-0">
                     <thead class="thead-light">
                         <tr>
-                            <th>Date</th>
+                            <th>Date & Time</th>
                             <th>Title</th>
                             <th>Project</th>
-                            <th>Attendees</th>
-                            <th>Decisions</th>
-                            <th>Action Items</th>
-                            <th style="width: 160px;">Actions</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th class="text-right" style="width: 160px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($meetings as $meeting)
                             <tr>
-                                <td>{{ optional($meeting->meeting_date)->format('d M Y') }}</td>
-                                <td>{{ $meeting->title }}</td>
-                                <td>{{ optional($meeting->project)->project_name ?? 'General' }}</td>
-                                <td>{{ \Illuminate\Support\Str::limit($meeting->attendees, 60) }}</td>
-                                <td>{{ $meeting->decisions ? \Illuminate\Support\Str::limit($meeting->decisions, 60) : 'None' }}</td>
-                                <td>{{ $meeting->action_items ? \Illuminate\Support\Str::limit($meeting->action_items, 60) : 'None' }}</td>
                                 <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('meeting-minutes.show', $meeting->id) }}" class="btn btn-info">
+                                    <div class="font-weight-bold">{{ optional($meeting->meeting_date)->format('d M Y') }}</div>
+                                    <small class="text-muted"><i class="far fa-clock mr-1"></i> {{ \Carbon\Carbon::parse($meeting->meeting_time)->format('h:i A') }}</small>
+                                </td>
+                                <td>
+                                    <div class="font-weight-bold text-dark">{{ $meeting->meeting_title }}</div>
+                                    <small class="text-muted"><i class="fas fa-users mr-1"></i> {{ $meeting->participants->count() }} attendee(s)</small>
+                                </td>
+                                <td>
+                                    @if($meeting->project)
+                                        <span class="badge badge-light border text-dark"><i class="fas fa-folder text-warning mr-1"></i> {{ $meeting->project->project_name }}</span>
+                                    @else
+                                        <span class="text-muted font-italic">General / Internal</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-pill badge-secondary">{{ $meeting->meeting_type }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $meeting->location ?? 'N/A' }}">
+                                        {{ $meeting->location ?? 'N/A' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @php
+                                        $statusClass = match ($meeting->status) {
+                                            'Draft' => 'badge-secondary',
+                                            'Published' => 'badge-success',
+                                            'Completed' => 'badge-info',
+                                            default => 'badge-secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $statusClass }} px-2 py-1">{{ $meeting->status }}</span>
+                                </td>
+                                <td class="text-right">
+                                    <div class="btn-group btn-group-sm shadow-sm">
+                                        <a href="{{ route('meeting-minutes.show', $meeting->id) }}" class="btn btn-info" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        @can('manage-meeting-minutes')
-                                            <a href="{{ route('meeting-minutes.edit', $meeting->id) }}" class="btn btn-warning">
+                                        @can('manage-meeting-minutes', $meeting)
+                                            <a href="{{ route('meeting-minutes.edit', $meeting->id) }}" class="btn btn-warning text-dark font-weight-bold" title="Edit">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <form method="POST" action="{{ route('meeting-minutes.destroy', $meeting->id) }}" class="d-inline" onsubmit="return confirm('Delete this meeting note?');">
+                                            <form method="POST" action="{{ route('meeting-minutes.destroy', $meeting->id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this meeting minute? This cannot be undone.');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger">
+                                                <button type="submit" class="btn btn-danger" title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -145,17 +185,23 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">No meeting notes found.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fas fa-handshake fa-3x mb-3 text-light"></i>
+                                    <p class="mb-0">No meeting minutes found matching the criteria.</p>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="card-footer clearfix">
-            <div class="float-right">
-                {{ $meetings->links() }}
+        @if($meetings->hasPages())
+            <div class="card-footer clearfix bg-light">
+                <div class="float-right m-0">
+                    {{ $meetings->links() }}
+                </div>
             </div>
-        </div>
+        @endif
     </div>
+</div>
 @endsection

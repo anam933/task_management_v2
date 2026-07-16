@@ -65,6 +65,38 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-lg-6 col-md-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ $createdMomCount }}</h3>
+                <p>MOMs Created</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <a href="{{ route('meeting-minutes.index') }}" class="small-box-footer">
+                View MOMs <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-md-6">
+        <div class="small-box bg-warning">
+            <div class="inner p-3">
+                <h3 class="text-dark">{{ $pendingActionItemsCount }}</h3>
+                <p class="text-dark font-weight-bold">Pending Action Items</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-clipboard-list text-dark opacity-25"></i>
+            </div>
+            <a href="{{ route('meeting-minutes.index') }}" class="small-box-footer text-dark">
+                View Actions <i class="fas fa-arrow-circle-right text-dark"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="card card-outline card-primary shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title mb-0">Tasks to Review & Manage</h3>

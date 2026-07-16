@@ -24,6 +24,13 @@ Route::resource('tasks', TaskController::class);
 Route::resource('projects', ProjectController::class);
 Route::resource('tags', TagController::class);
 Route::resource('standup-reports', DailyStandupReportController::class);
+Route::get(
+    '/meeting-minutes/project/{project}/users',
+    [MeetingMinuteController::class, 'getProjectUsers']
+)->name('meeting-minutes.project-users');
+
+
+
 Route::resource('meeting-minutes', MeetingMinuteController::class);
 
 Route::get('/manager-dashboard', [App\Http\Controllers\ManagerDashboardController::class, 'index'])->name('manager.dashboard');
@@ -115,5 +122,8 @@ Route::post('/tasks/{task}/reassign', [TaskController::class, 'reassignTask'])
 
 Route::post('/tasks/{task}/start', [TaskController::class, 'startTask'])
     ->name('tasks.start');
+
+Route::post('/tasks/{task}/reject', [TaskController::class, 'rejectTask'])
+    ->name('manager.tasks.reject');
 
     

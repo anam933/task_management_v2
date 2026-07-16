@@ -327,22 +327,51 @@ $task->tags()->sync($request->input('tag_ids', []));
             ->with('success', 'Task Deleted Successfully');
     }
 
-   public function projectMembers(Project $project)
+ public function projectMembers(Project $project)
 {
-    $users = User::where(function ($query) use ($project) {
+    $users = collect();
 
-        $query->where('id', $project->assigned_to)
-              ->orWhere('id', $project->project_manager_id);
+    // Project Manager
+    if ($project->manager) {
+        $users->push($project->manager);
+    }
 
-    })
-    ->select('id', 'name')
-    ->orderBy('name')
-    ->get();
+    // Assigned User
+    if ($project->assignedUser) {
+        $users->push($project->assignedUser);
+    }
 
+    // Team Members
+    $users = $users->merge($project->teamMembers);
 
-    return response()->json($users);
+    // Project Creator
+    if ($project->creator) {
+        $users->push($project->creator);
+    }
+
+    // Reporting Manager
+    if ($project->reportingManager) {
+        $users->push($project->reportingManager);
+    }
+
+    return response()->json(
+        $users
+            ->unique('id')
+            ->sortBy('name')
+            ->values()
+            ->map(function ($user) {
+
+                return [
+
+                    'id' => $user->id,
+
+                    'text' => $user->name,
+
+                ];
+
+            })
+    );
 }
-
     public function submitTask(Request $request, Task $task)
     {
 

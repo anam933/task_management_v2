@@ -246,6 +246,13 @@ $totalUsers = (clone $userQuery)->count();
 
 
         
+        $totalMeetings = 0;
+        $upcomingMeetings = 0;
+        if ($user->hasRole('admin')) {
+            $totalMeetings = \App\Models\MeetingMinute::count();
+            $upcomingMeetings = \App\Models\MeetingMinute::whereDate('meeting_date', '>=', today())->count();
+        }
+
         return view('dashboard.index', compact(
             'users',
             'showSystemStats',
@@ -265,7 +272,9 @@ $totalUsers = (clone $userQuery)->count();
             'selectedCategory',
             'overdueTasks',
             'todayDeadlineTasks',
-            'upcomingTasks' 
+            'upcomingTasks',
+            'totalMeetings',
+            'upcomingMeetings'
         ));
     }
 }
