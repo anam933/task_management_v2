@@ -139,20 +139,7 @@
                     </div>
                 </div>
 
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Decisions</label>
-                            <textarea name="decisions" rows="4" class="form-control shadow-sm" placeholder="Log any decisions reached during this meeting...">{{ old('decisions', $meeting_minute->decisions) }}</textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">General Action Items (Notes)</label>
-                            <textarea name="action_items" rows="4" class="form-control shadow-sm" placeholder="List general action items or summary here...">{{ old('action_items', $meeting_minute->action_items) }}</textarea>
-                        </div>
-                    </div>
-                </div>
+
 
                 <hr class="my-4">
 
@@ -182,6 +169,7 @@
                                     @endphp
                                     @forelse($meeting_minute->actions as $action)
                                         <tr class="action-row">
+                                            <input type="hidden" name="actions[{{ $actionIndex }}][id]" value="{{ $action->id }}">
                                             <td>
                                                 <input type="text" name="actions[{{ $actionIndex }}][action_title]" class="form-control form-control-sm" value="{{ $action->action_title }}" required>
                                             </td>
@@ -202,7 +190,9 @@
                                                 <select name="actions[{{ $actionIndex }}][status]" class="form-control form-control-sm" required>
                                                     <option value="Pending" {{ $action->status == 'Pending' ? 'selected' : '' }}>Pending</option>
                                                     <option value="In Progress" {{ $action->status == 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                                                    <option value="Completed" {{ $action->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                                    @if($action->status == 'Completed' || (auth()->id() == $action->assigned_to && $action->status == 'In Progress'))
+                                                        <option value="Completed" {{ $action->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                                    @endif
                                                 </select>
                                             </td>
                                             <td class="text-center">
@@ -304,9 +294,8 @@ $(document).ready(function () {
                 </td>
                 <td>
                     <select name="actions[${actionIndex}][status]" class="form-control form-control-sm" required>
-                        <option value="Pending">Pending</option>
+                        <option value="Pending" selected>Pending</option>
                         <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
                     </select>
                 </td>
                 <td class="text-center">

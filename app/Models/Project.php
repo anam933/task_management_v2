@@ -41,10 +41,10 @@ class Project extends Model
         return $this->belongsTo(ProjectCategory::class, 'category_id');
     }
 
-    public function tasks()
-    {
-        return $this->hasMany(Task::class);
-    }
+   public function tasks()
+{
+    return $this->hasMany(Task::class);
+}
 
 
      public function getProgressAttribute()
@@ -152,5 +152,6 @@ public function assignedUser()
 
             return $users->unique('id')->values();
 }
+
 
 }

@@ -63,13 +63,13 @@ return [
     |
     */
 
-    'logo' => '<b>Task</b>Flow',
+    'logo' => '<style>.brand-image { max-height: 42px !important; margin-top: -6px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }</style><b>White</b>force',
     'logo_img' => 'vendor/adminlte/dist/img/downloads',
-    'logo_img_class' => 'brand-image img-circle elevation-9',
+    'logo_img_class' => 'brand-image elevation-1',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'TaskFlow Logo',
-   
+    'logo_img_alt' => 'Whiteforce Logo',
+
 
     /*
     |--------------------------------------------------------------------------
@@ -156,8 +156,8 @@ return [
 
     'layout_topnav' => null,
     'layout_boxed' => null,
-    'layout_fixed_sidebar' => null,
-    'layout_fixed_navbar' => null,
+    'layout_fixed_sidebar' => true,
+    'layout_fixed_navbar' => true,
     'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
 
@@ -321,69 +321,65 @@ return [
         [
             'text' => 'Profile',
             'url' => 'admin/setting',
-            'icon' => 'fas fa-fw fa-user',
+            'icon' => 'fas fa-fw fa-user text-secondary',
             'can' => 'view-profile',
         ],
         
-        [
-            'text' => 'logout',
-            'url'  => 'logout',
-            'icon' => 'fas fa-fw fa-sign-out-alt',
-        ],
+        
         
         [
         'text' => 'Dashboard',
         'url'  => '/',
-        'icon' => 'fas fa-fw fa-tachometer-alt',
+        'icon' => 'fas fa-fw fa-tachometer-alt text-secondary',
         'can' => 'view-dashboard',
         ],
 
         [
             'text' => 'User_Management',
             'url'  => 'users',
-            'icon' => 'fas fa-users',
+            'icon' => 'fas fa-users text-secondary',
             'can' => 'manage-employees',
         ],
         [
             'text' => 'Add Employee',
             'url'  => 'users/create',
-            'icon' => 'fas fa-user-plus',
+            'icon' => 'fas fa-user-plus text-secondary',
             'can' => 'manage-employees',
         ],
         [
             'text' => 'Task_Management',
             'url'  => 'tasks',
-            'icon' => 'fas fa-tasks',
+            'icon' => 'fas fa-tasks text-secondary',
             'can' => 'view-tasks',
         ],
         [
             'text' => 'Manager Dashboard',
             'url'  => 'manager-dashboard',
-            'icon' => 'fas fa-user-tie',
+            'icon' => 'fas fa-user-tie text-secondary',
             'can' => 'manage-tasks',
         ],
         [
             'text' => 'Tag_Management',
             'url'  => 'tags',
-            'icon' => 'fas fa-tags',
+            'icon' => 'fas fa-tags text-secondary',
             'can' => 'manage-tags',
         ],
         [
             'text' => 'Project_Category',
             'url'  => 'Project_category',
-            'icon' => 'fas fa-folder',
+            'icon' => 'fas fa-folder text-secondary',
             'can' => 'manage-project-categories',
         ],
         [
             'text' => 'Project_Management',
             'url'  => 'projects',
-            'icon' => 'fas fa-briefcase',
+            'icon' => 'fas fa-briefcase text-secondary',
             'can' => 'view-projects',
         ],
         [
             'text' => 'Task_board',
             'url'  => 'task-board',
-            'icon' => 'fas fa-tasks',
+            'icon' => 'fas fa-tasks text-secondary',
             'can' => 'view-task-board',
         ],
         
@@ -391,19 +387,19 @@ return [
         [
             'text'=>'Task_category',
             'url'=>'Task_category',
-            'icon'=>'fas fa-tags',
+            'icon'=>'fas fa-tags text-secondary',
             'can' => 'manage-task-categories',
         ],
         [
             'text' => 'Daily_Standup_Reports',
             'url' => 'standup-reports',
-            'icon' => 'fas fa-clipboard-list',
+            'icon' => 'fas fa-clipboard-list text-secondary',
             'can' => 'view-standup-reports',
         ],
         [
             'text' => 'Meeting_Minutes',
             'url' => 'meeting-minutes',
-            'icon' => 'fas fa-notes-medical',
+            'icon' => 'fas fa-notes-medical text-secondary',
             'can' => 'view-meeting-minutes',
         ],
     ],

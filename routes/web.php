@@ -51,7 +51,7 @@ Route::get('/task-details/{id}', [PipelineController::class, 'taskDetails'])
     Route::get('/login', [SessionsController::class, 'create'])->name('login');
 Route::post('/login', [SessionsController::class, 'store'])->name('login.store');
 
-Route::get('/logout', [SessionsController::class, 'logout'])->name('logout');
+Route::post('/logout', [SessionsController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('auth')
@@ -125,5 +125,8 @@ Route::post('/tasks/{task}/start', [TaskController::class, 'startTask'])
 
 Route::post('/tasks/{task}/reject', [TaskController::class, 'rejectTask'])
     ->name('manager.tasks.reject');
+
+Route::get('/projects/{project}/task-checklists', [MeetingMinuteController::class, 'projectTaskChecklists'])
+    ->name('projects.task-checklists');
 
     

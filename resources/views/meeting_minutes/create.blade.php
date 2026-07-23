@@ -43,7 +43,7 @@
 
                 <div class="row">
                     <!-- Title -->
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="font-weight-bold">Meeting Title <span class="text-danger">*</span></label>
                             <input type="text" name="meeting_title" class="form-control shadow-sm" value="{{ old('meeting_title') }}" placeholder="e.g. Weekly Standup, Project Kickoff" required>
@@ -51,7 +51,7 @@
                     </div>
 
                     <!-- Project -->
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="font-weight-bold">Project</label>
                             <select id="project_id" name="project_id" class="form-control select2 shadow-sm">
@@ -61,6 +61,16 @@
                                         {{ $project->project_name }} {{ $project->project_code ? '(' . $project->project_code . ')' : '' }}
                                     </option>
                                 @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Select Employee (Checklist Progress Filter) -->
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-bold text-secondary">Select Employee</label>
+                            <select id="checklist_user_id" name="checklist_user_id" class="form-control select2 shadow-sm" disabled>
+                                <option value="">Select a Project First</option>
                             </select>
                         </div>
                     </div>
@@ -108,7 +118,7 @@
                     <div class="col-md-12">
                         <div class="form-group">
                             <label class="font-weight-bold">Meeting Participants <span class="text-danger">*</span></label>
-                            <select id="participants" name="participants[]" class="form-control select2 shadow-sm" data-placeholder="Select Attendees" multiple required>
+                            <select id="participants" name="participants[]" class="form-control select2 shadow-sm" data-placeholder="Select Attendees" multiple required disabled>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ is_array(old('participants')) && in_array($user->id, old('participants')) ? 'selected' : '' }}>
                                         {{ $user->name }} ({{ ucfirst($user->role) }})
@@ -138,20 +148,7 @@
                     </div>
                 </div>
 
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">Decisions</label>
-                            <textarea name="decisions" rows="4" class="form-control shadow-sm" placeholder="Log any decisions reached during this meeting...">{{ old('decisions') }}</textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="font-weight-bold">General Action Items (Notes)</label>
-                            <textarea name="action_items" rows="4" class="form-control shadow-sm" placeholder="List general action items or summary here...">{{ old('action_items') }}</textarea>
-                        </div>
-                    </div>
-                </div>
+
 
                 <hr class="my-4">
 
@@ -163,21 +160,42 @@
                             <i class="fas fa-plus mr-1"></i> Add Action Item
                         </button>
                     </div>
+
+                    <hr class="my-4">
+
+                    <div class="card card-outline card-info shadow-sm">
+                        <div class="card-header bg-light">
+                            <h3 class="card-title text-info font-weight-bold">
+                                <i class="fas fa-tasks mr-1"></i>
+                                Task Checklist Progress
+                            </h3>
+                        </div>
+
+                        <div class="card-body">
+                            <div id="task-checklists">
+                                <div class="text-center text-muted py-4">
+                                    Select a project and employee to view task checklists.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0" id="actions-table">
                                 <thead class="thead-light">
                                     <tr>
-                                        <th style="width: 40%;">Action Title <span class="text-danger">*</span></th>
-                                        <th style="width: 25%;">Assigned To <span class="text-danger">*</span></th>
+                                        <th style="width: 50%;">Action Title <span class="text-danger">*</span></th>
+                                        <th style="width: 30%;">Assigned To <span class="text-danger">*</span></th>
                                         <th style="width: 20%;">Deadline <span class="text-danger">*</span></th>
-                                        <th style="width: 15%;">Status <span class="text-danger">*</span></th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr class="no-actions-row">
-                                        <td colspan="5" class="text-center py-4 text-muted">No tracked action items added yet. Click "Add Action Item" to register task assignments.</td>
+                                        <td colspan="4" class="text-center py-4 text-muted">No tracked action items added yet. Click "Add Action Item" to register task assignments.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -192,7 +210,7 @@
                             <select name="status" class="form-control shadow-sm font-weight-bold text-primary border-primary" required>
                                 <option value="Draft" {{ old('status', 'Draft') == 'Draft' ? 'selected' : '' }}>Draft</option>
                                 <option value="Published" {{ old('status') == 'Published' ? 'selected' : '' }}>Published</option>
-                                <option value="Completed" {{ old('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+                               
                             </select>
                         </div>
                     </div>
@@ -262,13 +280,6 @@ $(document).ready(function () {
                 <td>
                     <input type="date" name="actions[${actionIndex}][deadline]" class="form-control form-control-sm" required>
                 </td>
-                <td>
-                    <select name="actions[${actionIndex}][status]" class="form-control form-control-sm" required>
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </td>
                 <td class="text-center">
                     <button type="button" class="btn btn-outline-danger btn-xs remove-row-btn" title="Remove action item">
                         <i class="fas fa-trash-alt"></i>
@@ -295,13 +306,8 @@ $(document).ready(function () {
         
         if (!projectId) {
             window.currentProjectMembers = null;
-            // Restore all users to participants
-            participantsSelect.empty();
-            $.each(allUsers, function (index, user) {
-                let displayName = user.name || user.text || '';
-                participantsSelect.append(new Option(displayName, user.id, false, false));
-            });
-            participantsSelect.trigger('change');
+            // Clear and disable participants dropdown
+            participantsSelect.empty().prop('disabled', true).trigger('change');
             
             // Re-build assignee dropdowns on existing rows
             $('.select-assignee').each(function() {
@@ -309,6 +315,10 @@ $(document).ready(function () {
                 $(this).html(buildUserOptions());
                 $(this).val(currentVal);
             });
+
+            // Reset checklist user dropdown
+            $('#checklist_user_id').html('<option value="">Select a Project First</option>').prop('disabled', true).trigger('change');
+            $('#task-checklists').html('<div class="text-center text-muted py-4">Select a project and employee to view task checklists.</div>');
             return;
         }
 
@@ -320,14 +330,14 @@ $(document).ready(function () {
             success: function (users) {
                 window.currentProjectMembers = users;
                 
-                // Sync participants dropdown
+                // Sync and enable participants dropdown
                 participantsSelect.empty();
                 $.each(users, function (index, user) {
                     let displayName = user.name || user.text || '';
                     let option = new Option(displayName, user.id, false, false);
                     participantsSelect.append(option);
                 });
-                participantsSelect.trigger('change');
+                participantsSelect.prop('disabled', false).trigger('change');
 
                 // Update assignee dropdowns on existing action items
                 $('.select-assignee').each(function() {
@@ -340,9 +350,78 @@ $(document).ready(function () {
                         $(this).val('');
                     }
                 });
+
+                // Populate and enable the checklist user dropdown
+                let checklistUserSelect = $('#checklist_user_id');
+                checklistUserSelect.empty().append('<option value="">Select Employee</option>');
+                $.each(users, function (index, user) {
+                    let displayName = user.name || user.text || '';
+                    checklistUserSelect.append(new Option(displayName, user.id, false, false));
+                });
+                checklistUserSelect.prop('disabled', false).trigger('change');
+                $('#task-checklists').html('<div class="text-center text-muted py-4">Select an employee to view task checklists.</div>');
             },
             error: function () {
                 alert('Unable to load project members.');
+            }
+        });
+    });
+
+    // User change: Load user-specific checklists
+    $('#checklist_user_id').on('change', function () {
+        let userId = $(this).val();
+        let projectId = $('#project_id').val();
+        
+        if (!projectId || !userId) {
+            $('#task-checklists').html('<div class="text-center text-muted py-4">Select an employee to view task checklists.</div>');
+            return;
+        }
+
+        $.ajax({
+            url: `/projects/${projectId}/task-checklists?user_id=${userId}`,
+            type: 'GET',
+            dataType: 'json',
+            success: function(tasks){
+                let html = '';
+                if(tasks.length === 0){
+                    html = `
+                        <div class="alert alert-info mb-0">
+                            No task checklists found for this project and employee.
+                        </div>
+                    `;
+                }else{
+                    tasks.forEach(function(task){
+                        html += `
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <strong>${task.task_name}</strong>
+                                </div>
+                                <div class="card-body">
+                        `;
+                        task.checklists.forEach(function(item){
+                            let isChecked = item.is_completed ? 'checked' : '';
+                            html += `
+                                <div class="form-check mb-2">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="completed_checklists[]"
+                                        value="${item.id}"
+                                        ${isChecked}
+                                    >
+                                    <label class="form-check-label">
+                                        ${item.checklist_item}
+                                    </label>
+                                </div>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                $('#task-checklists').html(html);
             }
         });
     });

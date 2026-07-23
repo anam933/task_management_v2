@@ -26,4 +26,8 @@ class TaskChecklist extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+    public function meetingChecklists()
+{
+    return $this->hasMany(MeetingChecklist::class);
+}
 }

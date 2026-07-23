@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Models\MeetingChecklist;
+use App\Models\TaskChecklist;
 
 class MeetingMinuteController extends Controller
 {
@@ -90,7 +92,7 @@ class MeetingMinuteController extends Controller
             ->orderBy('project_name')
             ->get();
 
-        $users = User::orderBy('name')->get();
+        $users = collect();
 
         return view('meeting_minutes.create', compact('projects', 'users'));
     }
@@ -117,7 +119,11 @@ class MeetingMinuteController extends Controller
             'actions.*.action_title' => 'required_with:actions.*.assigned_to|string|max:255',
             'actions.*.assigned_to' => 'required_with:actions.*.action_title|exists:users,id',
             'actions.*.deadline' => 'required_with:actions.*.action_title|date',
-            'actions.*.status' => 'required_with:actions.*.action_title|in:Pending,In Progress,Completed',
+            'checklist_user_id' => 'nullable|exists:users,id',
+            'completed_checklists' => 'nullable|array',
+            'completed_checklists.*' => 'exists:task_checklists,id',
+
+            'remarks' => 'nullable|array',
         ]);
 
         if (!empty($data['project_id'])) {
@@ -153,9 +159,32 @@ class MeetingMinuteController extends Controller
                         'action_title' => $actionData['action_title'],
                         'assigned_to' => $actionData['assigned_to'],
                         'deadline' => $actionData['deadline'],
-                        'status' => $actionData['status'],
+                        'status' => 'Pending',
                     ]);
                 }
+            }
+        }
+
+        if ($meeting_minute && !empty($data['project_id']) && !empty($data['checklist_user_id'])) {
+            $projectId = $data['project_id'];
+            $checklistUserId = $data['checklist_user_id'];
+            
+            $allTaskChecklistIds = TaskChecklist::whereHas('task', function ($query) use ($projectId, $checklistUserId) {
+                $query->where('project_id', $projectId)
+                      ->where('assigned_to', $checklistUserId);
+            })->pluck('id')->toArray();
+            
+            $completedChecklistIds = $data['completed_checklists'] ?? [];
+            
+            foreach ($allTaskChecklistIds as $checklistId) {
+                $isCompleted = in_array($checklistId, $completedChecklistIds);
+                
+                TaskChecklist::where('id', $checklistId)->update(['is_completed' => $isCompleted]);
+                
+                $meeting_minute->checklistProgress()->create([
+                    'task_checklist_id' => $checklistId,
+                    'is_completed' => $isCompleted,
+                ]);
             }
         }
 
@@ -212,7 +241,37 @@ class MeetingMinuteController extends Controller
             'actions.*.assigned_to' => 'required_with:actions.*.action_title|exists:users,id',
             'actions.*.deadline' => 'required_with:actions.*.action_title|date',
             'actions.*.status' => 'required_with:actions.*.action_title|in:Pending,In Progress,Completed',
+            'checklist_user_id' => 'nullable|exists:users,id',
+            'completed_checklists' => 'nullable|array',
+            'completed_checklists.*' => 'exists:task_checklists,id',
         ]);
+
+        if (!empty($data['actions'])) {
+            $existingActions = $meeting_minute->actions->keyBy(function ($action) {
+                return $action->action_title . '_' . $action->assigned_to;
+            });
+
+            foreach ($data['actions'] as $index => $actionData) {
+                if (!empty($actionData['action_title']) && $actionData['status'] === 'Completed') {
+                    $assignedTo = (int)$actionData['assigned_to'];
+                    $key = $actionData['action_title'] . '_' . $assignedTo;
+                    $prevAction = $existingActions->get($key);
+
+                    $ok = false;
+                    if ($prevAction && $prevAction->status === 'Completed') {
+                        $ok = true;
+                    } elseif (Auth::id() === $assignedTo && $prevAction && $prevAction->status === 'In Progress') {
+                        $ok = true;
+                    }
+
+                    if (!$ok) {
+                        return back()->withErrors([
+                            "actions.{$index}.status" => "Only the assigned employee can mark this action item as Completed after starting it."
+                        ])->withInput();
+                    }
+                }
+            }
+        }
 
         if (!empty($data['project_id'])) {
             abort_unless(
@@ -249,6 +308,31 @@ class MeetingMinuteController extends Controller
                         'status' => $actionData['status'],
                     ]);
                 }
+            }
+        }
+
+        if (!empty($data['project_id']) && !empty($data['checklist_user_id'])) {
+            $projectId = $data['project_id'];
+            $checklistUserId = $data['checklist_user_id'];
+            
+            $allTaskChecklistIds = TaskChecklist::whereHas('task', function ($query) use ($projectId, $checklistUserId) {
+                $query->where('project_id', $projectId)
+                      ->where('assigned_to', $checklistUserId);
+            })->pluck('id')->toArray();
+            
+            $meeting_minute->checklistProgress()->whereIn('task_checklist_id', $allTaskChecklistIds)->delete();
+            
+            $completedChecklistIds = $data['completed_checklists'] ?? [];
+            
+            foreach ($allTaskChecklistIds as $checklistId) {
+                $isCompleted = in_array($checklistId, $completedChecklistIds);
+                
+                TaskChecklist::where('id', $checklistId)->update(['is_completed' => $isCompleted]);
+                
+                $meeting_minute->checklistProgress()->create([
+                    'task_checklist_id' => $checklistId,
+                    'is_completed' => $isCompleted,
+                ]);
             }
         }
 
@@ -297,4 +381,20 @@ class MeetingMinuteController extends Controller
             })->values()
         );
     }
+
+
+    public function projectTaskChecklists(Request $request, Project $project)
+{
+    $userId = $request->query('user_id');
+
+    $tasks = \App\Models\Task::where('project_id', $project->id)
+        ->has('checklists')
+        ->with('checklists')
+        ->when($userId, function ($query) use ($userId) {
+            $query->where('assigned_to', $userId);
+        })
+        ->get();
+
+    return response()->json($tasks);
+}
 }

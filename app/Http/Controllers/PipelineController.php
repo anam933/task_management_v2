@@ -23,7 +23,21 @@ class PipelineController extends Controller
             ->visibleTo(Auth::user())
             ->when($selectedCategory, fn ($query) => $query->currentCategory($selectedCategory))
             ->get();
-        return view('kanban_board', compact('tasks'));
+            
+        $pendingTasks = $tasks->where('status', 'Pending')->count();
+        $inProgressTasks = $tasks->where('status', 'In Progress')->count();
+        $submittedTasks = $tasks->where('status', 'Submitted')->count();
+        $completedTasks = $tasks->where('status', 'Completed')->count();
+        $totalTasks = $tasks->count();
+
+        return view('kanban_board', compact(
+            'tasks',
+            'pendingTasks',
+            'inProgressTasks',
+            'submittedTasks',
+            'completedTasks',
+            'totalTasks'
+        ));
     }
 
     public function updateStatus(Request $request)

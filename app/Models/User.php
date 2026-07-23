@@ -201,6 +201,12 @@ class User extends Authenticatable
                 }
                 return true;
             }
+            if ($this->hasRole('employee')) {
+                if ($context instanceof MeetingMinute) {
+                    return $context->actions()->where('assigned_to', $this->id)->exists();
+                }
+                return false;
+            }
             return false;
         }
 

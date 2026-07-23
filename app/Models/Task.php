@@ -63,7 +63,7 @@ class Task extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function checklists()
+   public function checklists()
 {
     return $this->hasMany(TaskChecklist::class);
 }
@@ -98,8 +98,12 @@ class Task extends Model
         });
     }
 
-    // Employee -> Only own assigned tasks
-    return $query->where('assigned_to', $user->id);
+    // Employee -> Only own assigned tasks, tasks they assigned, or tasks they are reviewing
+    return $query->where(function ($builder) use ($user) {
+        $builder->where('assigned_to', $user->id)
+                ->orWhere('assigned_by', $user->id)
+                ->orWhere('reviewer_id', $user->id);
+    });
 }
 
     public function scopeCurrentCategory($query, ?int $categoryId)

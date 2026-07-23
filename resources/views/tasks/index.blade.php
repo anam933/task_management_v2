@@ -23,7 +23,7 @@
 <div class="card card-outline card-secondary shadow-sm mb-3">
     <div class="card-body">
         <form method="GET" class="row align-items-end">
-            <div class="col-lg-5 mb-2">
+            <div class="col-lg-4 mb-2">
                 <label class="mb-1">Filter by Project</label>
                 <select name="project_id" class="form-control">
                     <option value="">All Projects</option>
@@ -34,7 +34,13 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-3 mb-2">
+            <div class="col-lg-4 mb-2">
+                <label class="mb-1">Filter by Assigned Employee</label>
+                <select name="assigned_to" class="form-control" disabled>
+                    <option value="">All Employees</option>
+                </select>
+            </div>
+            <div class="col-lg-4 mb-2">
                 <button class="btn btn-primary mr-2">Apply</button>
                 <a href="{{ route('tasks.index') }}" class="btn btn-outline-secondary">Reset</a>
             </div>
@@ -42,51 +48,58 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-3 col-md-6">
-        <div class="small-box bg-primary">
-            <div class="inner">
-                <h3>{{ $totalTasks }}</h3>
-                <p>Total Tasks</p>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card card-outline card-primary shadow-lg border-0 rounded-lg overflow-hidden" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 1rem;">
+            <div class="card-header bg-light border-0 py-3">
+                <h3 class="card-title text-primary font-weight-bold mb-0">
+                    <i class="fas fa-chart-pie mr-2"></i> Task Status Distribution
+                </h3>
             </div>
-            <div class="icon">
-                <i class="fas fa-tasks"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="small-box bg-warning">
-            <div class="inner">
-                <h3>{{ $pendingTasks }}</h3>
-                <p>Pending</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-clock"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="small-box bg-info">
-            <div class="inner">
-                <h3>{{ $inProgressTasks }}</h3>
-                <p>In Progress</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-spinner"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6">
-        <div class="small-box bg-success">
-            <div class="inner">
-                <h3>{{ $completedTasks }}</h3>
-                <p>Completed</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-check-circle"></i>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <!-- Legend Details -->
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <div class="p-3 rounded-lg bg-light shadow-sm">
+                            <h5 class="font-weight-bold text-dark mb-3"><i class="fas fa-info-circle text-muted mr-1"></i> Statistics Summary</h5>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <span class="d-flex align-items-center text-muted font-weight-bold">
+                                    <span class="mr-2" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ffc107;"></span> Pending Tasks
+                                </span>
+                                <span class="badge badge-warning font-weight-bold px-3 py-2 text-dark" style="font-size:0.9rem;">{{ $pendingTasks }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <span class="d-flex align-items-center text-muted font-weight-bold">
+                                    <span class="mr-2" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#17a2b8;"></span> In Progress Tasks
+                                </span>
+                                <span class="badge badge-info font-weight-bold px-3 py-2" style="font-size:0.9rem;">{{ $inProgressTasks }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <span class="d-flex align-items-center text-muted font-weight-bold">
+                                    <span class="mr-2" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#007bff;"></span> Review Tasks
+                                </span>
+                                <span class="badge badge-primary font-weight-bold px-3 py-2" style="font-size:0.9rem;">{{ $submittedTasks }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pb-1">
+                                <span class="d-flex align-items-center text-muted font-weight-bold">
+                                    <span class="mr-2" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#28a745;"></span> Completed Tasks
+                                </span>
+                                <span class="badge badge-success font-weight-bold px-3 py-2" style="font-size:0.9rem;">{{ $completedTasks }}</span>
+                            </div>
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h6 font-weight-bold text-dark mb-0">Total Tracked Tasks</span>
+                                <span class="badge badge-dark font-weight-bold px-3 py-2" style="font-size:1rem; border-radius: 0.5rem;">{{ $totalTasks }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Pie Chart -->
+                    <div class="col-md-7 d-flex justify-content-center align-items-center">
+                        <div style="position: relative; width: 100%; max-width: 320px; aspect-ratio: 1 / 1;">
+                            <canvas id="taskStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -242,8 +255,121 @@
 @stop
 
 @push('js')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        $(document).ready(function () {
+            // Function to load and populate project members
+            function loadProjectMembers(projectId, selectedUserId = null) {
+                const userSelect = $('select[name="assigned_to"]');
+                if (!projectId) {
+                    userSelect.html('<option value="">All Employees</option>').prop('disabled', true);
+                    return;
+                }
+
+                userSelect.prop('disabled', true);
+
+                $.ajax({
+                    url: `/projects/${projectId}/members`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(users) {
+                        userSelect.empty().append('<option value="">All Employees</option>');
+                        $.each(users, function(index, user) {
+                            let displayName = user.text || user.name || '';
+                            let isSelected = (selectedUserId && selectedUserId == user.id) ? 'selected' : '';
+                            userSelect.append(`<option value="${user.id}" ${isSelected}>${displayName}</option>`);
+                        });
+                        userSelect.prop('disabled', false);
+                    },
+                    error: function() {
+                        alert('Unable to load project members.');
+                    }
+                });
+            }
+
+            // On initial load, check if project is pre-selected
+            const initialProject = $('select[name="project_id"]').val();
+            if (initialProject) {
+                loadProjectMembers(initialProject, '{{ request('assigned_to') }}');
+            } else {
+                $('select[name="assigned_to"]').prop('disabled', true);
+            }
+
+            // When Project changes
+            $('select[name="project_id"]').on('change', function() {
+                // Clear user dropdown and statistics/task list while loading/resetting
+                $('select[name="assigned_to"]').html('<option value="">All Employees</option>').prop('disabled', true);
+                
+                // Submit form to reload
+                $(this).closest('form').submit();
+            });
+
+            // When User changes
+            $('select[name="assigned_to"]').on('change', function() {
+                $(this).closest('form').submit();
+            });
+
+            const ctx = document.getElementById('taskStatusChart').getContext('2d');
+            
+            const pendingCount = {{ $pendingTasks }};
+            const inProgressCount = {{ $inProgressTasks }};
+            const submittedCount = {{ $submittedTasks }};
+            const completedCount = {{ $completedTasks }};
+            
+            const totalCount = pendingCount + inProgressCount + submittedCount + completedCount;
+            
+            const dataValues = totalCount > 0 
+                ? [pendingCount, inProgressCount, submittedCount, completedCount] 
+                : [1];
+            const dataLabels = totalCount > 0 
+                ? ['Pending', 'In Progress', 'Review', 'Completed'] 
+                : ['No Tasks'];
+            const bgColors = totalCount > 0 
+                ? ['#ffc107', '#17a2b8', '#007bff', '#28a745'] 
+                : ['#e2e8f0'];
+            const hoverBgColors = totalCount > 0 
+                ? ['#e0a800', '#138496', '#0069d9', '#218838'] 
+                : ['#cbd5e1'];
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: bgColors,
+                        hoverBackgroundColor: hoverBgColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: totalCount > 0,
+                            callbacks: {
+                                label: function (context) {
+                                    const value = context.raw;
+                                    const pct = ((value / totalCount) * 100).toFixed(1);
+                                    return ` ${context.label}: ${value} (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        });
+
         document.querySelectorAll('form[action*="tasks/"]').forEach((form) => {
             const deleteButton = form.querySelector('button[type="submit"]');
             if (!deleteButton) {

@@ -44,6 +44,9 @@ class TaskController extends Controller
         if (request()->filled('project_id')) {
             $tasksQuery->where('project_id', request('project_id'));
         }
+        if (request()->filled('assigned_to')) {
+            $tasksQuery->where('assigned_to', request('assigned_to'));
+        }
 
         $tasks = $tasksQuery->get();
 
@@ -54,22 +57,36 @@ class TaskController extends Controller
         if (request()->filled('project_id')) {
             $statsQuery->where('project_id', request('project_id'));
         }
+        if (request()->filled('assigned_to')) {
+            $statsQuery->where('assigned_to', request('assigned_to'));
+        }
 
         $totalTasks = (clone $statsQuery)->count();
         $pendingTasks = (clone $statsQuery)->where('status', 'Pending')->count();
         $inProgressTasks = (clone $statsQuery)->where('status', 'In Progress')->count();
-         $ReviewTasks = (clone $statsQuery)->where('status', 'Review')->count();
+        $submittedTasks = (clone $statsQuery)->where('status', 'Submitted')->count();
         $completedTasks = (clone $statsQuery)->where('status', 'Completed')->count();
+
+        if ($user->hasRole('admin')) {
+            $users = User::orderBy('name')->get();
+        } elseif ($user->hasRole('manager')) {
+            $users = User::where('id', $user->id)
+                ->orWhere('reports_to', $user->id)
+                ->orderBy('name')
+                ->get();
+        } else {
+            $users = collect([$user]);
+        }
 
         return view('tasks.index', compact(
             'tasks',
             'projects',
+            'users',
             'totalTasks',
             'pendingTasks',
             'inProgressTasks',
+            'submittedTasks',
             'completedTasks'
-           
-
         ));
     }
 
@@ -329,6 +346,18 @@ $task->tags()->sync($request->input('tag_ids', []));
 
  public function projectMembers(Project $project)
 {
+    $currentUser = Auth::user();
+    
+    if (!$currentUser->hasRole(['admin', 'manager'])) {
+        return response()->json([
+            [
+                'id' => $currentUser->id,
+                'name' => $currentUser->name,
+                'text' => $currentUser->name,
+            ]
+        ]);
+    }
+
     $users = collect();
 
     // Project Manager

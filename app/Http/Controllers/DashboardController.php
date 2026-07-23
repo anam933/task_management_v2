@@ -31,14 +31,14 @@ class DashboardController extends Controller
         $showSystemStats = $user->hasRole(['admin', 'manager']);
 
         // Project Query
-        $projectQuery = Project::query();
+        $projectQuery = Project::visibleTo($user);
 
         if ($selectedCategory) {
             $projectQuery->where('category_id', $selectedCategory);
         }
 
         // Task Query
-        $taskQuery = Task::query();
+        $taskQuery = Task::visibleTo($user);
 
         if ($selectedCategory) {
             $taskQuery->whereHas('project', function ($q) use ($selectedCategory) {

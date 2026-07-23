@@ -159,142 +159,67 @@
             </div>
 
             <div class="col-md-6">
-
-                <div class="row">
-                                        <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-info">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['assigned'] }}</h3>
-
-                                <p>Assigned Tasks</p>
-
-                            </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-tasks"></i>
-
-                            </div>
-
-                        </div>
-
+                <div class="card card-outline card-primary shadow-sm border-0 rounded-lg overflow-hidden" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 1rem; height: 100%;">
+                    <div class="card-header bg-light border-0 py-2">
+                        <h3 class="card-title text-primary font-weight-bold mb-0" style="font-size: 1.1rem;">
+                            <i class="fas fa-chart-pie mr-2"></i> Task Status Distribution
+                        </h3>
                     </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-success">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['created'] }}</h3>
-
-                                <p>Created Tasks</p>
-
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <!-- Legend Details -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="p-3 rounded-lg bg-light shadow-sm">
+                                    <h6 class="font-weight-bold text-dark mb-3"><i class="fas fa-info-circle text-muted mr-1"></i> Summary</h6>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <span class="mr-2" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ffc107;"></span> Pending Tasks
+                                        </span>
+                                        <span class="badge badge-warning font-weight-bold px-2 py-1 text-dark" style="font-size:0.8rem;">{{ $stats['pending'] }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <span class="mr-2" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#17a2b8;"></span> In Progress
+                                        </span>
+                                        <span class="badge badge-info font-weight-bold px-2 py-1" style="font-size:0.8rem;">{{ $stats['in_progress'] }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <span class="mr-2" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#007bff;"></span> Review Tasks
+                                        </span>
+                                        <span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size:0.8rem;">{{ $stats['submitted'] }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <span class="mr-2" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#28a745;"></span> Completed
+                                        </span>
+                                        <span class="badge badge-success font-weight-bold px-2 py-1" style="font-size:0.8rem;">{{ $stats['completed'] }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <i class="fas fa-tasks mr-2 text-primary"></i> Assigned Tasks
+                                        </span>
+                                        <span class="badge badge-secondary font-weight-bold px-2 py-1" style="font-size:0.8rem;">{{ $stats['assigned'] }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="d-flex align-items-center text-muted font-weight-bold" style="font-size: 0.85rem;">
+                                            <i class="fas fa-plus-circle mr-2 text-success"></i> Created Tasks
+                                        </span>
+                                        <span class="badge badge-secondary font-weight-bold px-2 py-1" style="font-size:0.8rem;">{{ $stats['created'] }}</span>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-plus-circle"></i>
-
+                            
+                            <!-- Pie Chart -->
+                            <div class="col-md-6">
+                                <div class="chart-container position-relative" style="height: 220px; width: 100%;">
+                                    <canvas id="userStatusChart"></canvas>
+                                </div>
                             </div>
-
                         </div>
-
                     </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-warning">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['pending'] }}</h3>
-
-                                <p>Pending</p>
-
-                            </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-clock"></i>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-primary">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['in_progress'] }}</h3>
-
-                                <p>In Progress</p>
-
-                            </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-spinner"></i>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-secondary">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['submitted'] }}</h3>
-
-                                <p>Submitted</p>
-
-                            </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-paper-plane"></i>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <div class="small-box bg-success">
-
-                            <div class="inner">
-
-                                <h3>{{ $stats['completed'] }}</h3>
-
-                                <p>Completed</p>
-
-                            </div>
-
-                            <div class="icon">
-
-                                <i class="fas fa-check-circle"></i>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
                 </div>
-
             </div>
 
         </div>
@@ -435,5 +360,73 @@
     </div>
 
 </div>
+
+@push('js')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            @if($selectedUser)
+                const ctx = document.getElementById('userStatusChart').getContext('2d');
+                
+                const pendingCount = {{ $stats['pending'] }};
+                const inProgressCount = {{ $stats['in_progress'] }};
+                const submittedCount = {{ $stats['submitted'] }};
+                const completedCount = {{ $stats['completed'] }};
+                
+                const totalCount = pendingCount + inProgressCount + submittedCount + completedCount;
+                
+                const dataValues = totalCount > 0 
+                    ? [pendingCount, inProgressCount, submittedCount, completedCount] 
+                    : [1];
+                const dataLabels = totalCount > 0 
+                    ? ['Pending', 'In Progress', 'Review', 'Completed'] 
+                    : ['No Tasks'];
+                const bgColors = totalCount > 0 
+                    ? ['#ffc107', '#17a2b8', '#007bff', '#28a745'] 
+                    : ['#e2e8f0'];
+                const hoverBgColors = totalCount > 0 
+                    ? ['#e0a800', '#138496', '#0069d9', '#218838'] 
+                    : ['#cbd5e1'];
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: dataLabels,
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: bgColors,
+                            hoverBackgroundColor: hoverBgColors,
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: totalCount > 0,
+                                callbacks: {
+                                    label: function (context) {
+                                        const value = context.raw;
+                                        const pct = ((value / totalCount) * 100).toFixed(1);
+                                        return ` ${context.label}: ${value} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true
+                        }
+                    }
+                });
+            @endif
+        });
+    </script>
+@endpush
 
 @endsection

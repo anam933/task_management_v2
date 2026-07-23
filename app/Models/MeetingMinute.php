@@ -60,6 +60,12 @@ class MeetingMinute extends Model
         if ($user->hasRole('manager')) {
             return $query->where(function ($builder) use ($user) {
                 $builder->where('created_by', $user->id)
+                    ->orWhereHas('participants', function ($q) use ($user) {
+                        $q->where('users.id', $user->id);
+                    })
+                    ->orWhereHas('actions', function ($q) use ($user) {
+                        $q->where('assigned_to', $user->id);
+                    })
                     ->orWhereHas('project', function ($projectQuery) use ($user) {
                         $projectQuery->where('project_manager_id', $user->id)
                             ->orWhere('created_by', $user->id);
@@ -69,12 +75,23 @@ class MeetingMinute extends Model
 
         // Employee
         return $query->where(function ($builder) use ($user) {
-            $builder->whereIn('status', ['Published', 'Completed'])
-                ->whereHas('project', function ($projectQuery) use ($user) {
-                    $projectQuery->where('assigned_to', $user->id)
-                        ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
-                            $teamQuery->where('users.id', $user->id);
-                        });
+            $builder->where('created_by', $user->id) // Employee created the draft/meeting
+                ->orWhere(function ($q2) use ($user) {
+                    $q2->whereIn('status', ['Published', 'Completed'])
+                       ->where(function ($q3) use ($user) {
+                           $q3->whereHas('participants', function ($pQ) use ($user) {
+                               $pQ->where('users.id', $user->id);
+                           })
+                           ->orWhereHas('actions', function ($aQ) use ($user) {
+                               $aQ->where('assigned_to', $user->id);
+                           })
+                           ->orWhereHas('project', function ($projectQuery) use ($user) {
+                               $projectQuery->where('assigned_to', $user->id)
+                                   ->orWhereHas('teamMembers', function ($teamQuery) use ($user) {
+                                       $teamQuery->where('users.id', $user->id);
+                                   });
+                           });
+                       });
                 });
         });
     }
@@ -88,4 +105,9 @@ class MeetingMinute extends Model
             $projectQuery->where('category_id', $categoryId);
         });
     }
+
+    public function checklistProgress()
+{
+    return $this->hasMany(MeetingChecklist::class);
+}
 }

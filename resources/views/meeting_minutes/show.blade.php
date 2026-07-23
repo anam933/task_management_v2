@@ -67,23 +67,7 @@
                         <div class="p-3 bg-light rounded text-dark" style="white-space: pre-wrap;">{{ $meeting->discussion_points }}</div>
                     </div>
 
-                    <!-- Decisions -->
-                    <div class="mb-4">
-                        <h4 class="h6 font-weight-bold text-secondary text-uppercase border-bottom pb-2">
-                            <i class="fas fa-gavel text-warning mr-1"></i> Key Decisions
-                        </h4>
-                        <div class="p-3 bg-light rounded text-dark" style="white-space: pre-wrap;">{{ $meeting->decisions ?? 'No major decisions logged.' }}</div>
-                    </div>
 
-                    <!-- General Action Items Text -->
-                    @if($meeting->action_items)
-                        <div class="mb-4">
-                            <h4 class="h6 font-weight-bold text-secondary text-uppercase border-bottom pb-2">
-                                <i class="fas fa-clipboard-list text-info mr-1"></i> Action Items Notes
-                            </h4>
-                            <div class="p-3 bg-light rounded text-dark" style="white-space: pre-wrap;">{{ $meeting->action_items }}</div>
-                        </div>
-                    @endif
                 </div>
             </div>
 
